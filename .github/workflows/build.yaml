@@ -1,0 +1,81 @@
+name: build
+
+# https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#concurrency
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+on:
+  push:
+    tags:
+      - v[0-9]+.[0-9]+.[0-9]+**
+jobs:
+  build-macOS:
+    runs-on: macos-12
+    env:
+      TAG: ${{ github.ref_name }}"
+      KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
+      CERTIFICATE: ${{ secrets.CERTIFICATE }}
+      CERTIFICATE_DEVELOPER_ID: ${{ secrets.CERTIFICATE_DEVELOPER_ID }}
+      DEVELOPER_ID_PASSWORD: ${{ secrets.DEVELOPER_ID_PASSWORD }}
+      CERTIFICATE_PASSWORD: ${{ secrets.CERTIFICATE_PASSWORD }}
+      IOS_PROVISION_PROFILE: ${{ secrets.IOS_PROVISION_PROFILE }}
+      MACOS_PROVISION_PROFILE: ${{ secrets.MACOS_PROVISION_PROFILE }}
+      DEVELOPER_ID_PROVISION_PROFILE: ${{ secrets.DEVELOPER_ID_PROVISION_PROFILE }}
+      APP_STORE_CONNECT_API_KEY: ${{ secrets.APP_STORE_CONNECT_API_KEY }}
+      APP_STORE_CONNECT_ISSUER: ${{ secrets.APP_STORE_CONNECT_ISSUER }}
+      APP_STORE_CONNECT_PRIVATE_KEY: ${{ secrets.APP_STORE_CONNECT_PRIVATE_KEY }}
+      INSTALLER_CERTIFICATE: ${{ secrets.INSTALLER_CERTIFICATE }}
+      INSTALLER_CERTIFICATE_PASSWORD: ${{ secrets.INSTALLER_CERTIFICATE_PASSWORD }}
+    steps:
+      - uses: actions/checkout@v3
+      - name: Prepare keychain
+        run: scripts/prepare-keychain.sh
+      - name: Prepare provisioning profiles
+        run: scripts/prepare-profiles.sh
+      - name: Build macOS
+        run: xcodebuild -quiet -workspace Vocaltale.xcworkspace -scheme Vocaltale -configuration Release build -archivePath ./artifacts.xcarchive archive
+      - name: Archive
+        run: xcodebuild -exportArchive -archivePath ./artifacts.xcarchive -exportOptionsPlist Vocaltale/ExportOptions.plist -exportPath ./artifacts/
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: Vocaltale
+          path: ./artifacts/
+      - name: Clean-up artifiacts
+        run: rm -rf ./artifacts
+      - name: Archive for App Store
+        run: xcodebuild -exportArchive -archivePath ./artifacts.xcarchive -exportOptionsPlist Vocaltale/ExportOptions.app-store.plist -exportPath ./artifacts/
+      - name: Upload to App Store Connect
+        run: xcrun altool --upload-app --type macos --file ./artifacts/Vocaltale.pkg --apiKey "$APP_STORE_CONNECT_API_KEY" --apiIssuer "$APP_STORE_CONNECT_ISSUER"
+
+  build-iOS:
+    runs-on: macos-12
+    env:
+      TAG: ${{ github.ref_name }}"
+      KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
+      CERTIFICATE: ${{ secrets.CERTIFICATE }}
+      CERTIFICATE_DEVELOPER_ID: ${{ secrets.CERTIFICATE_DEVELOPER_ID }}
+      DEVELOPER_ID_PASSWORD: ${{ secrets.DEVELOPER_ID_PASSWORD }}
+      CERTIFICATE_PASSWORD: ${{ secrets.CERTIFICATE_PASSWORD }}
+      IOS_PROVISION_PROFILE: ${{ secrets.IOS_PROVISION_PROFILE }}
+      MACOS_PROVISION_PROFILE: ${{ secrets.MACOS_PROVISION_PROFILE }}
+      DEVELOPER_ID_PROVISION_PROFILE: ${{ secrets.DEVELOPER_ID_PROVISION_PROFILE }}
+      APP_STORE_CONNECT_API_KEY: ${{ secrets.APP_STORE_CONNECT_API_KEY }}
+      APP_STORE_CONNECT_ISSUER: ${{ secrets.APP_STORE_CONNECT_ISSUER }}
+      APP_STORE_CONNECT_PRIVATE_KEY: ${{ secrets.APP_STORE_CONNECT_PRIVATE_KEY }}
+      INSTALLER_CERTIFICATE: ${{ secrets.INSTALLER_CERTIFICATE }}
+      INSTALLER_CERTIFICATE_PASSWORD: ${{ secrets.INSTALLER_CERTIFICATE_PASSWORD }}
+    steps:
+      - uses: actions/checkout@v3
+      - name: Prepare keychain
+        run: scripts/prepare-keychain.sh
+      - name: Prepare provisioning profiles
+        run: scripts/prepare-profiles.sh
+      - name: Build iOS
+        run: xcodebuild -quiet -workspace Vocaltale.xcworkspace -scheme "Vocaltale (iOS)" -configuration Release -archivePath ./artifacts.xcarchive archive
+      - name: Export archive
+        run: xcodebuild -exportArchive -archivePath ./artifacts.xcarchive -exportOptionsPlist iOS/ExportOptions.plist -exportPath ./artifacts/
+      - name: Upload IPA to App Store Connect
+        run: xcrun altool --upload-app --type ios --file ./artifacts/Vocaltale.ipa --apiKey "$APP_STORE_CONNECT_API_KEY" --apiIssuer "$APP_STORE_CONNECT_ISSUER"
+

@@ -1,0 +1,46 @@
+/* 
+  Localizable.strings
+  Vocaltale
+
+  Created by Kei Sau CHING on 2023/2/2.
+  
+*/
+
+navbar_library = "歌庫";
+navbar_search = "搜尋";
+
+tabview_search_keyword_placeholder = "搜尋";
+tabview_search = "搜尋";
+tabview_home = "主頁";
+tabview_create_library = "建立歌庫";
+tabview_open_library = "開啟歌庫";
+tabview_library = "歌庫";
+tabview_player = "播放器";
+
+tabview_album = "專輯";
+tabview_album_delete = "移除專輯";
+
+tabview_playlist = "播放清單";
+
+artist_unknown = "未知表演者";
+
+album_unknown = "未知專輯";
+album_disc_label = "光碟 %d";
+album_play_now = "播放";
+album_goto = "前往專輯";
+
+track_unknown = "未知歌目";
+
+// Error
+error_library_not_opened = "歌庫未開啟";
+
+error_file_not_supported = "檔案格式無效";
+error_file_source_not_found = "檔案源不存在";
+error_file_same_file_exists = "此檔案已存在";
+error_file_library_corrupted = "歌庫損毀";
+
+audio_device_list = "音訊裝置";
+audio_device_default = "系統預設 (%@)";
+
+// Modal messages
+modal_processing = "處理中 (%d/%d)";

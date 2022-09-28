@@ -1,0 +1,46 @@
+/* 
+  Localizable.strings
+  Vocaltale
+
+  Created by Kei Sau CHING on 2022/9/27.
+  
+*/
+
+menu_file = "File";
+menu_create_library = "Create Library";
+menu_open_library = "Open Library";
+
+sidebar_search_keyword_placeholder = "Search";
+sidebar_home = "Home";
+sidebar_create_library = "Create Library";
+sidebar_open_library = "Open Library";
+sidebar_library = "Library";
+sidebar_track = "Tracks";
+
+sidebar_album = "Albums";
+sidebar_album_delete = "Delete Album";
+
+sidebar_playlist = "Playlist";
+
+artist_unknown = "Unknown Artist";
+
+album_unknown = "Unknown Album";
+album_disc_label = "Disc %d";
+album_play_now = "Play Now";
+album_goto = "Go to album";
+
+track_unknown = "Unknown Track";
+
+// Error
+error_library_not_opened = "Library Not Opened";
+
+error_file_not_supported = "File type not supported";
+error_file_source_not_found = "Source file not found";
+error_file_same_file_exists = "The same file already exists";
+error_file_library_corrupted = "Library Corrupted";
+
+audio_device_list = "Audio Devices";
+audio_device_default = "System Default (%@)";
+
+// Modal messages
+modal_processing = "Processing (%d/%d)";

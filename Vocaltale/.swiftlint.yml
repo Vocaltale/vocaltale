@@ -1,0 +1,9 @@
+line_length: 120
+disabled_rules:
+  - todo
+  - function_body_length
+  - type_body_length
+  - file_length
+  - identifier_name
+  - function_parameter_count
+  - cyclomatic_complexity
