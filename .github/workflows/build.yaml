@@ -41,7 +41,10 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: Vocaltale
-          path: ./artifacts/
+          path: |
+            ./artifacts/
+            !./artifacts/*.plist
+            !./artifacts/*.log
       - name: Clean-up artifiacts
         run: rm -rf ./artifacts
       - name: Archive for App Store
