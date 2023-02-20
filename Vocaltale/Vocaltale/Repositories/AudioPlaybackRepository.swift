@@ -282,7 +282,7 @@ extension AudioPlaybackRepository {
         let tracks = LibraryRepository.instance.tracks(for: album)
 
         if isShuffle {
-            playlist = tracks.shuffled()
+            playlist = shuffle(tracks, withFirstTrack: track)
         } else {
             playlist = tracks
         }
@@ -301,7 +301,7 @@ extension AudioPlaybackRepository {
         }
 
         if isShuffle {
-            playlist = tracks.shuffled()
+            playlist = shuffle(tracks, withFirstTrack: track)
         } else {
             playlist = tracks
         }
@@ -341,7 +341,7 @@ extension AudioPlaybackRepository {
         play()
     }
 
-    func next() {
+    func next(_ forceful: Bool = false) {
         var finished = false
         progress = 0.0
 
@@ -349,7 +349,7 @@ extension AudioPlaybackRepository {
            let playlist {
             if currentTrackIndex == playlist.count - 1 {
                 finished = true
-                if isLoop {
+                if isLoop || forceful {
                     self.playlist = nextPlaylist()
                     self.currentTrackIndex = 0
 
@@ -367,11 +367,25 @@ extension AudioPlaybackRepository {
             currentTrack = self.playlist?.first
         }
 
-        if finished && !isLoop {
+        if finished && !(isLoop || forceful) {
             pause()
         } else {
             play()
         }
+    }
+}
+
+// MARK: private methods
+extension AudioPlaybackRepository {
+    private func shuffle(_ playlist: [Track], withFirstTrack track: Track) -> [Track] {
+        var retval = Array(playlist)
+        if let index = playlist.firstIndex(of: track) {
+            retval.remove(at: index)
+            retval.shuffle()
+            retval.insert(track, at: 0)
+        }
+
+        return retval
     }
 }
 
@@ -970,7 +984,7 @@ extension AudioPlaybackRepository {
                 return .success
             }
             mediaPlayerCommandCenter.nextTrackCommand.addTarget { _ in
-                self.next()
+                self.next(true)
                 return .success
             }
             mediaPlayerCommandCenter.pauseCommand.addTarget { _ in

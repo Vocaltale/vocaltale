@@ -109,7 +109,7 @@ struct ForwardButton: View {
                 hover = value
             }
             .onTapGesture {
-                audioPlayerRepository.next()
+                audioPlayerRepository.next(true)
             }
         } else {
             Image(systemName: "forward.end.fill")
