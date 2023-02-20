@@ -34,7 +34,7 @@ jobs:
       - name: Prepare provisioning profiles
         run: scripts/prepare-profiles.sh
       - name: Build macOS
-        run: xcodebuild -quiet -workspace Vocaltale.xcworkspace -scheme Vocaltale -configuration Release build -archivePath ./artifacts.xcarchive archive
+        run: xcodebuild -quiet -workspace Vocaltale.xcworkspace -scheme "Vocaltale (macOS)" -configuration Release build -archivePath ./artifacts.xcarchive archive
       - name: Archive
         run: xcodebuild -exportArchive -archivePath ./artifacts.xcarchive -exportOptionsPlist Vocaltale/ExportOptions.plist -exportPath ./artifacts/
       - name: Upload artifacts
@@ -45,8 +45,31 @@ jobs:
             ./artifacts/
             !./artifacts/*.plist
             !./artifacts/*.log
-      - name: Clean-up artifiacts
-        run: rm -rf ./artifacts
+  build-macOS-AppStore:
+    runs-on: macos-12
+    env:
+      TAG: ${{ github.ref_name }}"
+      KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
+      CERTIFICATE: ${{ secrets.CERTIFICATE }}
+      CERTIFICATE_DEVELOPER_ID: ${{ secrets.CERTIFICATE_DEVELOPER_ID }}
+      DEVELOPER_ID_PASSWORD: ${{ secrets.DEVELOPER_ID_PASSWORD }}
+      CERTIFICATE_PASSWORD: ${{ secrets.CERTIFICATE_PASSWORD }}
+      IOS_PROVISION_PROFILE: ${{ secrets.IOS_PROVISION_PROFILE }}
+      MACOS_PROVISION_PROFILE: ${{ secrets.MACOS_PROVISION_PROFILE }}
+      DEVELOPER_ID_PROVISION_PROFILE: ${{ secrets.DEVELOPER_ID_PROVISION_PROFILE }}
+      APP_STORE_CONNECT_API_KEY: ${{ secrets.APP_STORE_CONNECT_API_KEY }}
+      APP_STORE_CONNECT_ISSUER: ${{ secrets.APP_STORE_CONNECT_ISSUER }}
+      APP_STORE_CONNECT_PRIVATE_KEY: ${{ secrets.APP_STORE_CONNECT_PRIVATE_KEY }}
+      INSTALLER_CERTIFICATE: ${{ secrets.INSTALLER_CERTIFICATE }}
+      INSTALLER_CERTIFICATE_PASSWORD: ${{ secrets.INSTALLER_CERTIFICATE_PASSWORD }}
+    steps:
+      - uses: actions/checkout@v3
+      - name: Prepare keychain
+        run: scripts/prepare-keychain.sh
+      - name: Prepare provisioning profiles
+        run: scripts/prepare-profiles.sh
+      - name: Build macOS
+        run: xcodebuild -quiet -workspace Vocaltale.xcworkspace -scheme "Vocaltale (macOS, App Store)" -configuration Release build -archivePath ./artifacts.xcarchive archive
       - name: Archive for App Store
         run: xcodebuild -exportArchive -archivePath ./artifacts.xcarchive -exportOptionsPlist Vocaltale/ExportOptions.app-store.plist -exportPath ./artifacts/
       - name: Upload to App Store Connect

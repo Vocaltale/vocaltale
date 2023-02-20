@@ -14,7 +14,7 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "2C453E942987B3C4000CF5C7"
+               BlueprintIdentifier = "2C06BC1828DD469F00FDBE28"
                BuildableName = "Vocaltale.app"
                BlueprintName = "Vocaltale"
                ReferencedContainer = "container:Vocaltale.xcodeproj">
@@ -28,6 +28,28 @@
       selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
       shouldUseLaunchSchemeArgsEnv = "YES">
       <Testables>
+         <TestableReference
+            skipped = "NO"
+            parallelizable = "YES">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "2C06BC2928DD46A000FDBE28"
+               BuildableName = "VocaltaleTests.xctest"
+               BlueprintName = "VocaltaleTests"
+               ReferencedContainer = "container:Vocaltale.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
+         <TestableReference
+            skipped = "NO"
+            parallelizable = "YES">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "2C06BC3328DD46A000FDBE28"
+               BuildableName = "VocaltaleUITests.xctest"
+               BlueprintName = "VocaltaleUITests"
+               ReferencedContainer = "container:Vocaltale.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
       </Testables>
    </TestAction>
    <LaunchAction
@@ -45,7 +67,7 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "2C453E942987B3C4000CF5C7"
+            BlueprintIdentifier = "2C06BC1828DD469F00FDBE28"
             BuildableName = "Vocaltale.app"
             BlueprintName = "Vocaltale"
             ReferencedContainer = "container:Vocaltale.xcodeproj">
@@ -62,7 +84,7 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "2C453E942987B3C4000CF5C7"
+            BlueprintIdentifier = "2C06BC1828DD469F00FDBE28"
             BuildableName = "Vocaltale.app"
             BlueprintName = "Vocaltale"
             ReferencedContainer = "container:Vocaltale.xcodeproj">

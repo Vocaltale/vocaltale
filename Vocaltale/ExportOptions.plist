@@ -7,7 +7,7 @@
 	<key>destination</key>
 	<string>export</string>
 	<key>method</key>
-	<string>developer-id</string>
+	<string>mac-application</string>
 	<key>provisioningProfiles</key>
 	<dict>
 		<key>com.vocaltale.iOS.Vocaltale</key>
