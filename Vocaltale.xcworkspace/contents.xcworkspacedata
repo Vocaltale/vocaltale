@@ -2,7 +2,7 @@
 <Workspace
    version = "1.0">
    <FileRef
-      location = "group:Vocaltale/Vocaltale (macOS, App Store).xcodeproj">
+      location = "group:Vocaltale/Vocaltale (macOS).xcodeproj">
    </FileRef>
    <FileRef
       location = "group:iOS/Vocaltale/Vocaltale (iOS).xcodeproj">

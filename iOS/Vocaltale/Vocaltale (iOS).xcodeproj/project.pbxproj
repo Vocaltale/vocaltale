@@ -80,7 +80,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		2C453E952987B3C4000CF5C7 /* Vocaltale (iOS).app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Vocaltale (iOS).app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		2C453E952987B3C4000CF5C7 /* Vocaltale.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Vocaltale.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		2C453E982987B3C4000CF5C7 /* VocaltaleApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VocaltaleApp.swift; sourceTree = "<group>"; };
 		2C453E9A2987B3C4000CF5C7 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		2C453E9C2987B3C5000CF5C7 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -181,7 +181,7 @@
 		2C453E962987B3C4000CF5C7 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				2C453E952987B3C4000CF5C7 /* Vocaltale (iOS).app */,
+				2C453E952987B3C4000CF5C7 /* Vocaltale.app */,
 				2C453EA52987B3C5000CF5C7 /* Vocaltale (iOS)Tests.xctest */,
 				2C453EAF2987B3C5000CF5C7 /* Vocaltale (iOS)UITests.xctest */,
 			);
@@ -388,9 +388,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		2C453E942987B3C4000CF5C7 /* Vocaltale (iOS) */ = {
+		2C453E942987B3C4000CF5C7 /* Vocaltale */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 2C453EB92987B3C5000CF5C7 /* Build configuration list for PBXNativeTarget "Vocaltale (iOS)" */;
+			buildConfigurationList = 2C453EB92987B3C5000CF5C7 /* Build configuration list for PBXNativeTarget "Vocaltale" */;
 			buildPhases = (
 				2C8C4008299F15B2002A5BD4 /* ShellScript */,
 				2C453E912987B3C4000CF5C7 /* Sources */,
@@ -401,7 +401,7 @@
 			);
 			dependencies = (
 			);
-			name = "Vocaltale (iOS)";
+			name = Vocaltale;
 			packageProductDependencies = (
 				2C453EDA2987BB91000CF5C7 /* NIO */,
 				2C453EDC2987BB91000CF5C7 /* NIOCore */,
@@ -410,7 +410,7 @@
 				2C453EE42987BBE5000CF5C7 /* SQLiteKit */,
 			);
 			productName = Vocaltale;
-			productReference = 2C453E952987B3C4000CF5C7 /* Vocaltale (iOS).app */;
+			productReference = 2C453E952987B3C4000CF5C7 /* Vocaltale.app */;
 			productType = "com.apple.product-type.application";
 		};
 		2C453EA42987B3C5000CF5C7 /* Vocaltale (iOS)Tests */ = {
@@ -491,7 +491,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				2C453E942987B3C4000CF5C7 /* Vocaltale (iOS) */,
+				2C453E942987B3C4000CF5C7 /* Vocaltale */,
 				2C453EA42987B3C5000CF5C7 /* Vocaltale (iOS)Tests */,
 				2C453EAE2987B3C5000CF5C7 /* Vocaltale (iOS)UITests */,
 			);
@@ -618,12 +618,12 @@
 /* Begin PBXTargetDependency section */
 		2C453EA72987B3C5000CF5C7 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = 2C453E942987B3C4000CF5C7 /* Vocaltale (iOS) */;
+			target = 2C453E942987B3C4000CF5C7 /* Vocaltale */;
 			targetProxy = 2C453EA62987B3C5000CF5C7 /* PBXContainerItemProxy */;
 		};
 		2C453EB12987B3C5000CF5C7 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = 2C453E942987B3C4000CF5C7 /* Vocaltale (iOS) */;
+			target = 2C453E942987B3C4000CF5C7 /* Vocaltale */;
 			targetProxy = 2C453EB02987B3C5000CF5C7 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
@@ -764,12 +764,13 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = Vocaltale/VocaltaleDebug.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 26;
+				CURRENT_PROJECT_VERSION = 27;
 				DEVELOPMENT_ASSET_PATHS = "\"Vocaltale/Preview Content\"";
 				DEVELOPMENT_TEAM = XU86G2TH62;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Vocaltale/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = Vocaltale;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.music";
 				INFOPLIST_KEY_LSSupportsOpeningDocumentsInPlace = NO;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -790,6 +791,7 @@
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
+				VERSIONING_SYSTEM = "apple-generic";
 			};
 			name = Debug;
 		};
@@ -799,15 +801,15 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = Vocaltale/VocaltaleRelease.entitlements;
-				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Distribution";
-				CODE_SIGN_STYLE = Manual;
-				CURRENT_PROJECT_VERSION = 26;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 27;
 				DEVELOPMENT_ASSET_PATHS = "\"Vocaltale/Preview Content\"";
-				DEVELOPMENT_TEAM = "";
-				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = XU86G2TH62;
+				DEVELOPMENT_TEAM = XU86G2TH62;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Vocaltale/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = Vocaltale;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.music";
 				INFOPLIST_KEY_LSSupportsOpeningDocumentsInPlace = NO;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -823,13 +825,13 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.vocaltale.iOS.Vocaltale;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
-				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = "Vocaltale (iOS)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;
 				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
+				VERSIONING_SYSTEM = "apple-generic";
 			};
 			name = Release;
 		};
@@ -839,7 +841,7 @@
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
 				DEVELOPMENT_TEAM = XU86G2TH62;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 16.2;
@@ -859,7 +861,7 @@
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
 				DEVELOPMENT_TEAM = XU86G2TH62;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 16.2;
@@ -878,7 +880,7 @@
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
 				DEVELOPMENT_TEAM = XU86G2TH62;
 				GENERATE_INFOPLIST_FILE = YES;
 				MARKETING_VERSION = 1.0;
@@ -896,7 +898,7 @@
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
 				DEVELOPMENT_TEAM = XU86G2TH62;
 				GENERATE_INFOPLIST_FILE = YES;
 				MARKETING_VERSION = 1.0;
@@ -921,7 +923,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		2C453EB92987B3C5000CF5C7 /* Build configuration list for PBXNativeTarget "Vocaltale (iOS)" */ = {
+		2C453EB92987B3C5000CF5C7 /* Build configuration list for PBXNativeTarget "Vocaltale" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				2C453EBA2987B3C5000CF5C7 /* Debug */,

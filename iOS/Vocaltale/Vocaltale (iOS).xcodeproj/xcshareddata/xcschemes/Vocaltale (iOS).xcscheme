@@ -15,8 +15,8 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "2C453E942987B3C4000CF5C7"
-               BuildableName = "Vocaltale (iOS).app"
-               BlueprintName = "Vocaltale (iOS)"
+               BuildableName = "Vocaltale.app"
+               BlueprintName = "Vocaltale"
                ReferencedContainer = "container:Vocaltale (iOS).xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
@@ -46,8 +46,8 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "2C453E942987B3C4000CF5C7"
-            BuildableName = "Vocaltale (iOS).app"
-            BlueprintName = "Vocaltale (iOS)"
+            BuildableName = "Vocaltale.app"
+            BlueprintName = "Vocaltale"
             ReferencedContainer = "container:Vocaltale (iOS).xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
@@ -63,8 +63,8 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "2C453E942987B3C4000CF5C7"
-            BuildableName = "Vocaltale (iOS).app"
-            BlueprintName = "Vocaltale (iOS)"
+            BuildableName = "Vocaltale.app"
+            BlueprintName = "Vocaltale"
             ReferencedContainer = "container:Vocaltale (iOS).xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>

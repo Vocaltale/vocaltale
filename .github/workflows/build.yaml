@@ -7,36 +7,53 @@ concurrency:
 
 on:
   push:
-    tags:
-      - v[0-9]+.[0-9]+.[0-9]+**
+    branches:
+      - main
 jobs:
   build-macOS:
+    name: Build macOS App as Artifacts
     runs-on: macos-12
     env:
-      TAG: ${{ github.ref_name }}"
+      CURRENT_PROJECT_VERSION: ${{ github.run_number }}
       KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
       CERTIFICATE: ${{ secrets.CERTIFICATE }}
-      CERTIFICATE_DEVELOPER_ID: ${{ secrets.CERTIFICATE_DEVELOPER_ID }}
-      DEVELOPER_ID_PASSWORD: ${{ secrets.DEVELOPER_ID_PASSWORD }}
       CERTIFICATE_PASSWORD: ${{ secrets.CERTIFICATE_PASSWORD }}
-      IOS_PROVISION_PROFILE: ${{ secrets.IOS_PROVISION_PROFILE }}
-      MACOS_PROVISION_PROFILE: ${{ secrets.MACOS_PROVISION_PROFILE }}
-      DEVELOPER_ID_PROVISION_PROFILE: ${{ secrets.DEVELOPER_ID_PROVISION_PROFILE }}
       APP_STORE_CONNECT_API_KEY: ${{ secrets.APP_STORE_CONNECT_API_KEY }}
       APP_STORE_CONNECT_ISSUER: ${{ secrets.APP_STORE_CONNECT_ISSUER }}
       APP_STORE_CONNECT_PRIVATE_KEY: ${{ secrets.APP_STORE_CONNECT_PRIVATE_KEY }}
-      INSTALLER_CERTIFICATE: ${{ secrets.INSTALLER_CERTIFICATE }}
-      INSTALLER_CERTIFICATE_PASSWORD: ${{ secrets.INSTALLER_CERTIFICATE_PASSWORD }}
+      APP_STORE_CONNECT_APP_ID: "1669452974"
+      PLATFORM: MAC_OS
     steps:
       - uses: actions/checkout@v3
       - name: Prepare keychain
         run: scripts/prepare-keychain.sh
-      - name: Prepare provisioning profiles
-        run: scripts/prepare-profiles.sh
+      - name: Install Python3 requirements
+        run: pip3 install -r requirements.txt
+      - name: Prepare .env
+        run: scripts/prepare-dotenv.sh
       - name: Build macOS
-        run: xcodebuild -quiet -workspace Vocaltale.xcworkspace -scheme "Vocaltale (macOS)" -configuration Release build -archivePath ./artifacts.xcarchive archive
+        run: |
+          xcodebuild -quiet -workspace Vocaltale.xcworkspace \
+            -scheme "Vocaltale (macOS)" \
+            -configuration Release \
+            -archivePath ./artifacts.xcarchive \
+            -destination generic/platform=macOS \
+            -allowProvisioningUpdates \
+            -authenticationKeyPath "${HOME}/private_keys/AuthKey_${APP_STORE_CONNECT_API_KEY}.p8" \
+            -authenticationKeyIssuerID "$APP_STORE_CONNECT_ISSUER" \
+            -authenticationKeyID "$APP_STORE_CONNECT_API_KEY" \
+            CURRENT_PROJECT_VERSION=`scripts/prepare-version.py` \
+            archive
       - name: Archive
-        run: xcodebuild -exportArchive -archivePath ./artifacts.xcarchive -exportOptionsPlist Vocaltale/ExportOptions.plist -exportPath ./artifacts/
+        run: |
+          xcodebuild -exportArchive \
+            -archivePath ./artifacts.xcarchive \
+            -exportOptionsPlist Vocaltale/ExportOptions.plist \
+            -exportPath ./artifacts/ \
+            -allowProvisioningUpdates \
+            -authenticationKeyPath "${HOME}/private_keys/AuthKey_${APP_STORE_CONNECT_API_KEY}.p8" \
+            -authenticationKeyIssuerID "$APP_STORE_CONNECT_ISSUER" \
+            -authenticationKeyID "$APP_STORE_CONNECT_API_KEY"
       - name: Create macOS App archive
         run: tar cjpf Vocaltale.app.tbz2 -C artifacts Vocaltale.app
       - name: Upload artifacts
@@ -45,62 +62,105 @@ jobs:
           name: Vocaltale.app
           path: Vocaltale.app.tbz2
   build-macOS-AppStore:
+    name: Build macOS App and upload to App Store Connect
     runs-on: macos-12
     env:
-      TAG: ${{ github.ref_name }}"
+      CURRENT_PROJECT_VERSION: ${{ github.run_number }}
       KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
       CERTIFICATE: ${{ secrets.CERTIFICATE }}
-      CERTIFICATE_DEVELOPER_ID: ${{ secrets.CERTIFICATE_DEVELOPER_ID }}
-      DEVELOPER_ID_PASSWORD: ${{ secrets.DEVELOPER_ID_PASSWORD }}
       CERTIFICATE_PASSWORD: ${{ secrets.CERTIFICATE_PASSWORD }}
-      IOS_PROVISION_PROFILE: ${{ secrets.IOS_PROVISION_PROFILE }}
-      MACOS_PROVISION_PROFILE: ${{ secrets.MACOS_PROVISION_PROFILE }}
-      DEVELOPER_ID_PROVISION_PROFILE: ${{ secrets.DEVELOPER_ID_PROVISION_PROFILE }}
       APP_STORE_CONNECT_API_KEY: ${{ secrets.APP_STORE_CONNECT_API_KEY }}
       APP_STORE_CONNECT_ISSUER: ${{ secrets.APP_STORE_CONNECT_ISSUER }}
       APP_STORE_CONNECT_PRIVATE_KEY: ${{ secrets.APP_STORE_CONNECT_PRIVATE_KEY }}
-      INSTALLER_CERTIFICATE: ${{ secrets.INSTALLER_CERTIFICATE }}
-      INSTALLER_CERTIFICATE_PASSWORD: ${{ secrets.INSTALLER_CERTIFICATE_PASSWORD }}
+      APP_STORE_CONNECT_APP_ID: "1669452974"
+      PLATFORM: MAC_OS
     steps:
       - uses: actions/checkout@v3
       - name: Prepare keychain
         run: scripts/prepare-keychain.sh
-      - name: Prepare provisioning profiles
-        run: scripts/prepare-profiles.sh
-      - name: Build macOS
-        run: xcodebuild -quiet -workspace Vocaltale.xcworkspace -scheme "Vocaltale (macOS, App Store)" -configuration Release build -archivePath ./artifacts.xcarchive archive
+      - name: Install Python3 requirements
+        run: pip3 install -r requirements.txt
+      - name: Prepare .env
+        run: scripts/prepare-dotenv.sh
+      - name: Build macOS for App Store
+        run: |
+          xcodebuild -quiet -workspace Vocaltale.xcworkspace \
+            -scheme "Vocaltale (macOS, App Store)" \
+            -configuration Release \
+            -archivePath ./artifacts.xcarchive \
+            -destination generic/platform=macOS \
+            -allowProvisioningUpdates \
+            -authenticationKeyPath "${HOME}/private_keys/AuthKey_${APP_STORE_CONNECT_API_KEY}.p8" \
+            -authenticationKeyIssuerID "$APP_STORE_CONNECT_ISSUER" \
+            -authenticationKeyID "$APP_STORE_CONNECT_API_KEY" \
+            CURRENT_PROJECT_VERSION=`scripts/prepare-version.py` \
+            archive
       - name: Archive for App Store
-        run: xcodebuild -exportArchive -archivePath ./artifacts.xcarchive -exportOptionsPlist Vocaltale/ExportOptions.app-store.plist -exportPath ./artifacts/
+        run: |
+          xcodebuild -exportArchive \
+            -archivePath ./artifacts.xcarchive \
+            -exportOptionsPlist Vocaltale/ExportOptions.app-store.plist \
+            -exportPath ./artifacts/ \
+            -allowProvisioningUpdates \
+            -authenticationKeyPath "${HOME}/private_keys/AuthKey_${APP_STORE_CONNECT_API_KEY}.p8" \
+            -authenticationKeyIssuerID "$APP_STORE_CONNECT_ISSUER" \
+            -authenticationKeyID "$APP_STORE_CONNECT_API_KEY"
       - name: Upload to App Store Connect
-        run: xcrun altool --upload-app --type macos --file ./artifacts/Vocaltale.pkg --apiKey "$APP_STORE_CONNECT_API_KEY" --apiIssuer "$APP_STORE_CONNECT_ISSUER"
+        run: |
+          xcrun altool --upload-app \
+            --type macos \
+            --file ./artifacts/Vocaltale.pkg \
+            --apiKey "$APP_STORE_CONNECT_API_KEY" \
+            --apiIssuer "$APP_STORE_CONNECT_ISSUER"
 
   build-iOS:
+    name: Build iOS App and upload to App Store Connect
     runs-on: macos-12
     env:
-      TAG: ${{ github.ref_name }}"
+      CURRENT_PROJECT_VERSION: ${{ github.run_number }}
       KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
       CERTIFICATE: ${{ secrets.CERTIFICATE }}
-      CERTIFICATE_DEVELOPER_ID: ${{ secrets.CERTIFICATE_DEVELOPER_ID }}
-      DEVELOPER_ID_PASSWORD: ${{ secrets.DEVELOPER_ID_PASSWORD }}
       CERTIFICATE_PASSWORD: ${{ secrets.CERTIFICATE_PASSWORD }}
-      IOS_PROVISION_PROFILE: ${{ secrets.IOS_PROVISION_PROFILE }}
-      MACOS_PROVISION_PROFILE: ${{ secrets.MACOS_PROVISION_PROFILE }}
-      DEVELOPER_ID_PROVISION_PROFILE: ${{ secrets.DEVELOPER_ID_PROVISION_PROFILE }}
       APP_STORE_CONNECT_API_KEY: ${{ secrets.APP_STORE_CONNECT_API_KEY }}
       APP_STORE_CONNECT_ISSUER: ${{ secrets.APP_STORE_CONNECT_ISSUER }}
       APP_STORE_CONNECT_PRIVATE_KEY: ${{ secrets.APP_STORE_CONNECT_PRIVATE_KEY }}
-      INSTALLER_CERTIFICATE: ${{ secrets.INSTALLER_CERTIFICATE }}
-      INSTALLER_CERTIFICATE_PASSWORD: ${{ secrets.INSTALLER_CERTIFICATE_PASSWORD }}
+      APP_STORE_CONNECT_APP_ID: "1669452974"
+      PLATFORM: IOS
     steps:
       - uses: actions/checkout@v3
       - name: Prepare keychain
         run: scripts/prepare-keychain.sh
-      - name: Prepare provisioning profiles
-        run: scripts/prepare-profiles.sh
+      - name: Install Python3 requirements
+        run: pip3 install -r requirements.txt
+      - name: Prepare .env
+        run: scripts/prepare-dotenv.sh
       - name: Build iOS
-        run: xcodebuild -quiet -workspace Vocaltale.xcworkspace -scheme "Vocaltale (iOS)" -configuration Release -archivePath ./artifacts.xcarchive archive
+        run: |
+          xcodebuild -quiet -workspace Vocaltale.xcworkspace \
+            -scheme "Vocaltale (iOS)" \
+            -configuration Release \
+            -archivePath ./artifacts.xcarchive \
+            -allowProvisioningUpdates \
+            -authenticationKeyPath "${HOME}/private_keys/AuthKey_${APP_STORE_CONNECT_API_KEY}.p8" \
+            -authenticationKeyIssuerID "$APP_STORE_CONNECT_ISSUER" \
+            -authenticationKeyID "$APP_STORE_CONNECT_API_KEY" \
+            CURRENT_PROJECT_VERSION=`scripts/prepare-version.py` \
+            archive
       - name: Export archive
-        run: xcodebuild -exportArchive -archivePath ./artifacts.xcarchive -exportOptionsPlist iOS/ExportOptions.plist -exportPath ./artifacts/
+        run: |
+          xcodebuild -exportArchive \
+            -archivePath ./artifacts.xcarchive \
+            -exportOptionsPlist iOS/ExportOptions.plist \
+            -exportPath ./artifacts/ \
+            -allowProvisioningUpdates \
+            -authenticationKeyPath "${HOME}/private_keys/AuthKey_${APP_STORE_CONNECT_API_KEY}.p8" \
+            -authenticationKeyIssuerID "$APP_STORE_CONNECT_ISSUER" \
+            -authenticationKeyID "$APP_STORE_CONNECT_API_KEY"
       - name: Upload IPA to App Store Connect
-        run: xcrun altool --upload-app --type ios --file ./artifacts/Vocaltale\ (iOS).ipa --apiKey "$APP_STORE_CONNECT_API_KEY" --apiIssuer "$APP_STORE_CONNECT_ISSUER"
+        run: |
+          xcrun altool --upload-app \
+            --type ios \
+            --file ./artifacts/Vocaltale.ipa \
+            --apiKey "$APP_STORE_CONNECT_API_KEY" \
+            --apiIssuer "$APP_STORE_CONNECT_ISSUER"
 
