@@ -103,5 +103,5 @@ jobs:
       - name: Export archive
         run: xcodebuild -exportArchive -archivePath ./artifacts.xcarchive -exportOptionsPlist iOS/ExportOptions.plist -exportPath ./artifacts/
       - name: Upload IPA to App Store Connect
-        run: xcrun altool --upload-app --type ios --file ./artifacts/Vocaltale.ipa --apiKey "$APP_STORE_CONNECT_API_KEY" --apiIssuer "$APP_STORE_CONNECT_ISSUER"
+        run: xcrun altool --upload-app --type ios --file ./artifacts/Vocaltale\ (iOS).ipa --apiKey "$APP_STORE_CONNECT_API_KEY" --apiIssuer "$APP_STORE_CONNECT_ISSUER"
 
