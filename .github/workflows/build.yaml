@@ -37,14 +37,13 @@ jobs:
         run: xcodebuild -quiet -workspace Vocaltale.xcworkspace -scheme "Vocaltale (macOS)" -configuration Release build -archivePath ./artifacts.xcarchive archive
       - name: Archive
         run: xcodebuild -exportArchive -archivePath ./artifacts.xcarchive -exportOptionsPlist Vocaltale/ExportOptions.plist -exportPath ./artifacts/
+      - name: Create macOS App archive
+        run: tar cjpf Vocaltale.app.tbz2 -C artifacts Vocaltale.app
       - name: Upload artifacts
         uses: actions/upload-artifact@v3
         with:
-          name: Vocaltale
-          path: |
-            ./artifacts/
-            !./artifacts/*.plist
-            !./artifacts/*.log
+          name: Vocaltale.app
+          path: Vocaltale.app.tbz2
   build-macOS-AppStore:
     runs-on: macos-12
     env:
