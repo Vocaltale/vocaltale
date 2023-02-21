@@ -85,7 +85,15 @@ struct PlayerControlView: View {
                                             .frame(maxWidth: 1024, maxHeight: 1024)
                                     }
                                 }
-                            }                        }
+                            }
+                        }
+                        .simultaneousGesture(
+                            TapGesture().onEnded({ _ in
+                                libraryRepository.currentAlbum = album
+                                windowRepository.navigationPath.setAlbum(album)
+                                windowRepository.isShowingPlayerSheet = false
+                            })
+                        )
 
                 } else {
                     TrackView(track: audioPlayerRepository.currentTrack, album: album)

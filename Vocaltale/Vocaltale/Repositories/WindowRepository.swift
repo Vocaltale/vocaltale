@@ -14,6 +14,8 @@ class WindowRepository: ObservableObject {
     @Published var geometry: GeometryProxy?
 #if os(iOS)
     @Published var selectedTabTag = TabCategory.library
+    @Published var navigationPath = NavigationPath()
+    @Published var isShowingPlayerSheet = false
 #endif
     @Published var isShowingModal = false
     @Published var isChildDragging = false

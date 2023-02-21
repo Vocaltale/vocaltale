@@ -75,11 +75,21 @@ struct CurrentAudioPanel: View {
             }
             VStack(spacing: .zero) {
                 VStack(alignment: .center) {
-                    Text(audioPlayerRepository.currentTrack?.displayName ?? NSLocalizedString("track_unknown", comment: ""))
+                    Text(
+                        audioPlayerRepository.currentTrack?.displayName ?? NSLocalizedString(
+                            "track_unknown",
+                            comment: ""
+                        )
+                    )
                         .font(.system(Font.TextStyle.body))
                         .bold()
                         .lineLimit(1)
-                    Text(audioPlayerRepository.currentTrack?.displayArtist ?? NSLocalizedString("artist_unknown", comment: ""))
+                    Text(
+                        audioPlayerRepository.currentTrack?.displayArtist ?? NSLocalizedString(
+                            "artist_unknown",
+                            comment: ""
+                        )
+                    )
                         .font(.system(Font.TextStyle.caption))
                         .foregroundColor(Color.secondary)
                         .lineLimit(1)

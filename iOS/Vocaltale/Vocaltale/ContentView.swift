@@ -11,8 +11,6 @@ struct ContentView: View {
     @ObservedObject private var libraryRepository = LibraryRepository.instance
     @ObservedObject private var windowRepository = WindowRepository.instance
 
-    @State private var isShowingPlayerSheet = false
-
     var body: some View {
         ZStack(alignment: .bottom) {
             TabView(selection: $windowRepository.selectedTabTag) {
@@ -44,14 +42,14 @@ struct ContentView: View {
                     )
                 )
                 .onTapGesture {
-                    isShowingPlayerSheet = true
+                    windowRepository.isShowingPlayerSheet = true
                 }
                 .offset(x: 0, y: -1 * (windowRepository.geometry?.safeAreaInsets.bottom ?? 0))
         }
         .sheet(
-            isPresented: $isShowingPlayerSheet,
+            isPresented: $windowRepository.isShowingPlayerSheet,
             onDismiss: {
-                isShowingPlayerSheet = false
+                windowRepository.isShowingPlayerSheet = false
             },
             content: {
                 PlayerControlView()

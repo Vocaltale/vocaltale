@@ -41,10 +41,13 @@ private struct AlbumListContentDropDelegate: DropDelegate {
             return
         }
 
-        if let from = albums.firstIndex(of: dragged),
-           let to = albums.firstIndex(of: item),
-           from != to {
-            albums.move(fromOffsets: IndexSet(integer: from), toOffset: to > from ? to + 1 : to)
+        if let fromIndex = albums.firstIndex(of: dragged),
+           let toIndex = albums.firstIndex(of: item),
+           fromIndex != toIndex {
+            albums.move(
+                fromOffsets: IndexSet(integer: fromIndex),
+                toOffset: toIndex > fromIndex ? toIndex + 1 : toIndex
+            )
         }
     }
 
@@ -93,7 +96,7 @@ struct AlbumGridView: View {
     @State internal var albums: [Album] = []
     @State private var dragged: Album?
     var body: some View {
-        NavigationStack {
+        NavigationStack(path: $windowRepository.navigationPath) {
             GeometryReader { geometry in
                 ScrollView {
                     LazyVGrid(columns: [
@@ -101,12 +104,7 @@ struct AlbumGridView: View {
                         GridItem(.flexible(minimum: kCurrentAudioPanelHeight, maximum: .infinity))
                     ], content: {
                         ForEach(albums, id: \.id) { album in
-                            NavigationLink {
-                                if let album = libraryRepository.currentAlbum {
-                                    AlbumDetailView(album: album)
-                                }
-                            } label: {
-
+                            NavigationLink(value: album) {
                                 AlbumCardView(album: album)
                                     .foregroundColor(Color.primary)
                                     .frame(alignment: .center)
@@ -121,7 +119,11 @@ struct AlbumGridView: View {
                                     }
                                     .onDrop(
                                         of: [.text],
-                                        delegate: AlbumListContentDropDelegate(item: album, dragged: $dragged, albums: $albums)
+                                        delegate: AlbumListContentDropDelegate(
+                                            item: album,
+                                            dragged: $dragged,
+                                            albums: $albums
+                                        )
                                     )
                                     .animation(.default, value: albums)
                             }.simultaneousGesture(
@@ -144,6 +146,9 @@ struct AlbumGridView: View {
                         Spacer()
                             .frame(width: kCurrentAudioPanelHeight, height: kCurrentAudioPanelHeight)
                     })
+                }
+                .navigationDestination(for: Album.self) { album in
+                    AlbumDetailView(album: album)
                 }
                 .onAppear {
                     windowRepository.geometry = geometry
