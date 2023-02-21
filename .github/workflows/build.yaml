@@ -85,7 +85,7 @@ jobs:
       - name: Build macOS for App Store
         run: |
           xcodebuild -quiet -workspace Vocaltale.xcworkspace \
-            -scheme "Vocaltale (macOS, App Store)" \
+            -scheme "Vocaltale (macOS)" \
             -configuration Release \
             -archivePath ./artifacts.xcarchive \
             -destination generic/platform=macOS \
