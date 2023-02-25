@@ -47,6 +47,7 @@ struct AlbumDetailView: View {
                     ForEach(tracks(for: disc), id: \.id) { track in
                         TrackListItem(
                             track: track,
+                            order: track.track,
                             selected: selected ?? audioPlayerRepository.currentTrack == track
                         ) {
                             if selected ?? audioPlayerRepository.currentTrack == track {

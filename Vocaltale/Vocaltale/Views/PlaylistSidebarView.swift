@@ -1,8 +1,8 @@
 //
-//  LibraryView.swift
+//  PlaylistSidebarView.swift
 //  Vocaltale
 //
-//  Created by Kei Sau CHING on 2022/9/28.
+//  Created by Kei Sau CHING on 2023/2/25.
 //
 
 import SwiftUI
@@ -10,17 +10,17 @@ import UniformTypeIdentifiers
 
 private let kAlbumNameHorizontalPadding: CGFloat = 12.0
 
-private struct AlbumNameView: View {
-    let album: Album
+private struct PlaylistNameView: View {
+    let playlist: Playlist
 
-    @Binding var dragged: Album?
+    @Binding var dragged: Playlist?
 
     @ObservedObject private var libraryRepository = LibraryRepository.instance
     @State private var isFocused: Bool = false
 
     var body: some View {
         HStack {
-            Text(album.displayName)
+            Text(playlist.name)
             Spacer()
         }
         .padding(
@@ -33,7 +33,7 @@ private struct AlbumNameView: View {
         )
         .background(
             (
-                libraryRepository.currentAlbumID == album.id ? Color.accentColor.opacity(0.5) : Color.clear
+                libraryRepository.currentPlaylistID == playlist.id ? Color.accentColor.opacity(0.5) : Color.clear
             )
             .contentShape(RoundedRectangle(cornerRadius: 6))
         )
@@ -41,9 +41,9 @@ private struct AlbumNameView: View {
     }
 }
 
-private struct AlbumSidebarBackgroundDropDelegate: DropDelegate {
-    @Binding var dragged: Album?
-    @Binding var albums: [Album]
+private struct PlaylistSidebarBackgroundDropDelegate: DropDelegate {
+    @Binding var dragged: Playlist?
+    @Binding var playlists: [Playlist]
 
     @ObservedObject private var libraryRepository = LibraryRepository.instance
 
@@ -52,17 +52,17 @@ private struct AlbumSidebarBackgroundDropDelegate: DropDelegate {
     }
 
     func performDrop(info: DropInfo) -> Bool {
-        libraryRepository.reorder(to: albums)
+        libraryRepository.reorder(to: playlists)
 
         self.dragged = nil
         return true
     }
 }
 
-private struct AlbumSidebarDropDelegate: DropDelegate {
-    let item: Album
-    @Binding var dragged: Album?
-    @Binding var albums: [Album]
+private struct PlaylistSidebarDropDelegate: DropDelegate {
+    let item: Playlist
+    @Binding var dragged: Playlist?
+    @Binding var playlists: [Playlist]
 
     @ObservedObject private var libraryRepository = LibraryRepository.instance
 
@@ -72,10 +72,10 @@ private struct AlbumSidebarDropDelegate: DropDelegate {
             return
         }
 
-        if let from = albums.firstIndex(of: dragged),
-           let to = albums.firstIndex(of: item),
+        if let from = playlists.firstIndex(of: dragged),
+           let to = playlists.firstIndex(of: item),
            from != to {
-            albums.move(fromOffsets: IndexSet(integer: from), toOffset: to > from ? to + 1 : to)
+            playlists.move(fromOffsets: IndexSet(integer: from), toOffset: to > from ? to + 1 : to)
         }
     }
 
@@ -88,7 +88,7 @@ private struct AlbumSidebarDropDelegate: DropDelegate {
     }
 
     func performDrop(info: DropInfo) -> Bool {
-        libraryRepository.reorder(to: albums)
+        libraryRepository.reorder(to: playlists)
 
         self.dragged = nil
 
@@ -98,54 +98,50 @@ private struct AlbumSidebarDropDelegate: DropDelegate {
     }
 }
 
-struct AlbumSidebarView: View {
+struct PlaylistSidebarView: View {
     @ObservedObject private var libraryRepository = LibraryRepository.instance
     @Binding var category: SidebarCategory
 
     @State private var myAlbumsCollapsed = false
-    @State private var dragged: Album?
-    @State private var albums: [Album] = []
+    @State private var dragged: Playlist?
+    @State private var playlists: [Playlist] = []
 
     var body: some View {
         VStackLayout(alignment: .leading, spacing: 2) {
-            ForEach(albums, id: \.id) { album in
-                AlbumNameView(album: album, dragged: $dragged)
+            ForEach(playlists, id: \.id) { playlist in
+                PlaylistNameView(playlist: playlist, dragged: $dragged)
                     .onTapGesture {
-                        libraryRepository.currentAlbum = album
-                        libraryRepository.currentPlaylist = nil
-                    }
-                    .contextMenu {
-                        AlbumContextMenu(album: album)
+                        libraryRepository.currentPlaylist = playlist
                     }
                     .onDrag {
                         WindowRepository.instance.isChildDragging = true
-                        dragged = album
-                        return NSItemProvider(object: album.uuid as NSString)
+                        dragged = playlist
+                        return NSItemProvider(object: playlist.uuid as NSString)
                     }
                     .onDrop(
                         of: [.text],
-                        delegate: AlbumSidebarDropDelegate(item: album, dragged: $dragged, albums: $albums)
+                        delegate: PlaylistSidebarDropDelegate(item: playlist, dragged: $dragged, playlists: $playlists)
                     )
             }
         }
-        .animation(.default, value: albums)
-        .onDrop(of: [.text], delegate: AlbumSidebarBackgroundDropDelegate(dragged: $dragged, albums: $albums))
-        .onChange(of: libraryRepository.currentAlbumID) { id in
-            if let albumID = id {
-                libraryRepository.currentAlbum = libraryRepository.album(of: albumID)
-                category = .album
+        .animation(.default, value: playlists)
+        .onDrop(of: [.text], delegate: PlaylistSidebarBackgroundDropDelegate(dragged: $dragged, playlists: $playlists))
+        .onChange(of: libraryRepository.currentPlaylistID) { id in
+            if let id {
+                libraryRepository.currentPlaylist = libraryRepository.playlist(of: id)
+                category = .playlist
             }
         }
-        .onChange(of: libraryRepository.albums) { value in
-            albums = value
+        .onChange(of: libraryRepository.playlists) { value in
+            playlists = value
         }
         .onAppear {
-            albums = libraryRepository.albums
+            playlists = libraryRepository.playlists
         }
     }
 }
 
-struct AlbumSidebarView_Previews: PreviewProvider {
+struct PlaylistSidebarView_Previews: PreviewProvider {
     static var previews: some View {
         ContentView()
     }

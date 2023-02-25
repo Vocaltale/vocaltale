@@ -12,5 +12,5 @@ enum TabCategory: Hashable {
     case search
     case player
     case library
-    case allPlaylist
+    case playlist
 }

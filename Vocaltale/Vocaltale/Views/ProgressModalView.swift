@@ -1,5 +1,5 @@
 //
-//  ModalView.swift
+//  ProgressModalView.swift
 //  Vocaltale
 //
 //  Created by Kei Sau CHING on 2022/10/21.
@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct ModalView: View {
+struct ProgressModalView: View {
     @ObservedObject private var libraryRepository = LibraryRepository.instance
 
     var body: some View {
@@ -37,6 +37,6 @@ struct ModalView: View {
 
 struct ModalView_Previews: PreviewProvider {
     static var previews: some View {
-        ModalView()
+        ProgressModalView()
     }
 }

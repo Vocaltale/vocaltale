@@ -17,6 +17,9 @@ class WindowRepository: ObservableObject {
     @Published var navigationPath = NavigationPath()
     @Published var isShowingPlayerSheet = false
 #endif
-    @Published var isShowingModal = false
+#if os(OSX)
+    @Published var isShowingProgressModal = false
     @Published var isChildDragging = false
+    @Published var isShowingAddPlaylistModel = false
+#endif
 }

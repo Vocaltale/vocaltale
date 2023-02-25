@@ -20,11 +20,13 @@ class LibraryRepository: ObservableObject {
     private let userDefaults: UserDefaults?
 
     @Published var event: LibraryEvent
+    @Published var currentPlaylistID: String?
     @Published var currentAlbumID: String?
     @Published var currentTrackID: String?
     @Published var tracks = [Track]()
     @Published var albums = [Album]()
     @Published var artists = [Artist]()
+    @Published var playlists = [Playlist]()
     @Published var searchResults: [SearchResultType: [AnyHashable]] = [:]
     @Published var keyword: String = ""
     @Published var fileCount = 0
@@ -118,6 +120,23 @@ class LibraryRepository: ObservableObject {
         }
     }
 
+    var currentPlaylist: Playlist? {
+        get {
+            playlists.first { playlist in
+                playlist.uuid == currentPlaylistID
+            }
+        }
+        set(playlist) {
+            if let id = playlist?.uuid {
+                userDefaults?.set(id, forKey: "CURRENT_OPENED_PLAYLIST")
+            } else {
+                userDefaults?.removeObject(forKey: "CURRENT_OPENED_PLAYLIST")
+            }
+
+            currentPlaylistID = playlist?.uuid
+        }
+    }
+
     var state: LibraryState {
         get {
             event.state
@@ -167,7 +186,6 @@ class LibraryRepository: ObservableObject {
 
             Task {
                 await MainActor.run {
-                    self.state = .loading
                     self.currentAlbumID = self.userDefaults?.string(forKey: "CURRENT_OPENED_ALBUM")
                 }
 
@@ -188,10 +206,16 @@ class LibraryRepository: ObservableObject {
                         .columns("*")
                         .all(decoding: Artist.self)
 
+                    let playlistResults = try await db.select()
+                        .from("playlists")
+                        .columns("*")
+                        .all(decoding: Playlist.self)
+
                     await MainActor.run {
                         self.albums = albumResults
                         self.tracks = trackResults
                         self.artists = artistResults
+                        self.playlists = playlistResults
 
                         self.event = LibraryEvent(state: .loaded, library: library, error: nil)
                     }
@@ -199,6 +223,11 @@ class LibraryRepository: ObservableObject {
                     await MainActor.run {
                         self.event = LibraryEvent(state: .failed, library: nil, error: error)
                     }
+                }
+
+                await MainActor.run {
+                    self.currentAlbumID = self.userDefaults?.string(forKey: "CURRENT_OPENED_ALBUM")
+                    self.currentPlaylistID = self.userDefaults?.string(forKey: "CURRENT_OPENED_PLAYLIST")
                 }
 
                 self.mainLock.signal()
@@ -240,10 +269,16 @@ class LibraryRepository: ObservableObject {
                         .columns("*")
                         .all(decoding: Artist.self)
 
+                    let playlistResults = try await db.select()
+                        .from("playlists")
+                        .columns("*")
+                        .all(decoding: Playlist.self)
+
                     await MainActor.run {
                         self.albums = albumResults
                         self.tracks = trackResults
                         self.artists = artistResults
+                        self.playlists = playlistResults
 
                         self.event = LibraryEvent(state: .loaded, library: library, error: nil)
                     }
@@ -253,6 +288,27 @@ class LibraryRepository: ObservableObject {
                 self.mainLock.signal()
                 self.transactionLock.signal()
             }
+        }
+    }
+
+    func playlist(of playlistID: String) -> Playlist? {
+        let retval = playlists.first { p in
+            p.id == playlistID
+        }
+
+        return retval
+    }
+
+    func tracks(for playlist: Playlist) -> [PlaylistTrack] {
+        guard let db = event.library?.mediaDatabase
+        else {
+            return []
+        }
+
+        do {
+            return try tryFetchPlaylistTracks(db, playlist)
+        } catch {
+            return []
         }
     }
 
@@ -536,9 +592,154 @@ class LibraryRepository: ObservableObject {
             }
         }
     }
+
+    func reorder(to playlists: [Playlist]) {
+        guard let db = event.library?.mediaDatabase
+        else {
+            return
+        }
+
+        transactionQueue.async {
+            self.transactionLock.wait()
+            self.mainLock.wait()
+            Task {
+                do {
+                    try await db.raw("begin transaction;").run()
+
+                    try await self.tryReorder(db, to: playlists)
+
+                    try await db.raw("commit;").run()
+                } catch {
+                    debugPrint("error", error)
+                    try? await db.raw("rollback;").run()
+                }
+
+                self.mainLock.signal()
+                self.transactionLock.signal()
+                self.reload()
+            }
+        }
+    }
+
+    func reorder(to tracks: [PlaylistTrack]) {
+        guard let db = event.library?.mediaDatabase
+        else {
+            return
+        }
+
+        transactionQueue.async {
+            self.transactionLock.wait()
+            self.mainLock.wait()
+            Task {
+                do {
+                    try await db.raw("begin transaction;").run()
+
+                    try await self.tryReorder(db, to: tracks)
+
+                    try await db.raw("commit;").run()
+                } catch {
+                    debugPrint("error", error)
+                    try? await db.raw("rollback;").run()
+                }
+
+                self.mainLock.signal()
+                self.transactionLock.signal()
+                self.reload()
+            }
+        }
+    }
+}
+
+// MARK: Playlist operations
+extension LibraryRepository {
+    func createPlaylist(_ name: String) {
+        guard let db = event.library?.mediaDatabase
+        else {
+            return
+        }
+
+        let playlist = Playlist(uuid: UUID().uuidString, name: name, order: playlists.count + 1)
+
+        transactionQueue.async {
+            self.transactionLock.wait()
+            self.mainLock.wait()
+            Task {
+                do {
+                    try await db.raw("begin transaction;").run()
+
+                    try await self.tryAddPlaylist(db, playlist)
+
+                    try await db.raw("commit;").run()
+                } catch {
+                    debugPrint("error", error)
+                    try? await db.raw("rollback;").run()
+                }
+
+                self.mainLock.signal()
+                self.transactionLock.signal()
+                self.reload()
+            }
+        }
+    }
+
+    func add(track: Track, to playlist: Playlist) {
+        guard let db = event.library?.mediaDatabase
+        else {
+            return
+        }
+
+        let tracks = tracks(for: playlist)
+        let playlistTrack = PlaylistTrack(
+            uuid: UUID().uuidString, playlistID: playlist.id, trackID: track.id, order: tracks.count + 1
+        )
+
+        transactionQueue.async {
+            self.transactionLock.wait()
+            self.mainLock.wait()
+            Task {
+                do {
+                    try await db.raw("begin transaction;").run()
+
+                    try await self.tryAddTrackToPlaylist(db, playlistTrack)
+
+                    try await db.raw("commit;").run()
+                } catch {
+                    debugPrint("error", error)
+                    try? await db.raw("rollback;").run()
+                }
+
+                self.mainLock.signal()
+                self.transactionLock.signal()
+                self.reload()
+            }
+        }
+    }
 }
 
 extension LibraryRepository {
+    private func tryFetchPlaylistTracks(_ db: SQLDatabase, _ playlist: Playlist) throws -> [PlaylistTrack] {
+        try db.select()
+            .from("playlist_tracks")
+            .column("*")
+            .where("playlistID", .equal, playlist.uuid)
+            .all(decoding: PlaylistTrack.self)
+            .wait()
+    }
+
+    private func tryAddTrackToPlaylist(_ db: SQLDatabase, _ playlistTrack: PlaylistTrack) async throws {
+        try await db.insert(into: "playlist_tracks")
+            .model(playlistTrack)
+            .run()
+    }
+
+    private func tryAddPlaylist(_ db: SQLDatabase, _ playlist: Playlist) async throws {
+        if !playlists.contains(playlist) {
+            try await db.insert(into: "playlists")
+                .model(playlist)
+                .run()
+        }
+    }
+
     private func tryAddAlbum(_ db: SQLDatabase, _ inputAlbum: Album, _ artist: Artist) async throws -> Album? {
         if !albums.contains(inputAlbum) {
             let order = (albums.last?.order ?? albums.count) + 1
@@ -609,6 +810,18 @@ extension LibraryRepository {
         try await db.delete(from: "tracks")
             .where("albumID", .equal, album.uuid)
             .run()
+
+        let tracks = try await db.select()
+            .from("tracks")
+            .columns("*")
+            .where("albumID", .equal, album.uuid)
+            .all(decoding: Track.self)
+
+        try await db.delete(from: "playlist_tracks")
+            .where("trackID", .in, tracks.map({ track in
+                track.uuid
+            }))
+            .run()
     }
 
     private func tryDeleteArtist(_ db: SQLDatabase, _ album: Album) async throws -> String? {
@@ -634,6 +847,26 @@ extension LibraryRepository {
             let album = albums[i]
             try await db.update("albums")
                 .where("uuid", .equal, album.uuid)
+                .set("order", to: i + 1)
+                .run()
+        }
+    }
+
+    private func tryReorder(_ db: SQLDatabase, to playlists: [Playlist]) async throws {
+        for i in 0..<playlists.count {
+            let playlist = playlists[i]
+            try await db.update("playlists")
+                .where("uuid", .equal, playlist.uuid)
+                .set("order", to: i + 1)
+                .run()
+        }
+    }
+
+    private func tryReorder(_ db: SQLDatabase, to tracks: [PlaylistTrack]) async throws {
+        for i in 0..<tracks.count {
+            let track = tracks[i]
+            try await db.update("playlist_tracks")
+                .where("uuid", .equal, track.uuid)
                 .set("order", to: i + 1)
                 .run()
         }

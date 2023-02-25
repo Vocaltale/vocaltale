@@ -16,7 +16,21 @@ struct PlayerControlView: View {
     @State private var displayHover: Bool = false
 
     private var album: Album? {
-        return audioPlayerRepository.currentAlbum
+        if let album = audioPlayerRepository.currentAlbum {
+            return album
+        }
+
+        if let playlistTrack = audioPlayerRepository.currentPlaylistTrack,
+           let track = libraryRepository.track(of: playlistTrack.trackID),
+           let album = libraryRepository.album(of: track.albumID) {
+            return album
+        }
+
+        return nil
+    }
+
+    private var playlist: Playlist? {
+        return libraryRepository.currentPlaylist
     }
 
     private var artworkURL: URL? {
@@ -56,12 +70,13 @@ struct PlayerControlView: View {
     var body: some View {
         VStack(alignment: .center) {
             Group {
-                if let album {
+                if let album,
+                   let playlist = audioPlayerRepository.playlist {
                     TrackView(track: audioPlayerRepository.currentTrack, album: album)
                         .contextMenu {
-                            ForEach(libraryRepository.tracks(for: album)) { track in
-                                Button(track.name ?? NSLocalizedString("track_unknown", comment: "")) {
-                                    audioPlayerRepository.play(track)
+                            ForEach(playlist, id: \.id) { item in
+                                Button(item.track.name ?? NSLocalizedString("track_unknown", comment: "")) {
+                                    audioPlayerRepository.play(playlist, from: item.track, with: item.playlistTrack)
                                 }
                             }
                         } preview: {

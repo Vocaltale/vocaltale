@@ -16,6 +16,7 @@ sidebar_create_library = "建立歌庫";
 sidebar_open_library = "開啟歌庫";
 sidebar_library = "歌庫";
 sidebar_track = "歌目";
+sidebar_playlist = "播放列表";
 
 sidebar_album = "專輯";
 sidebar_album_delete = "移除專輯";
@@ -44,3 +45,8 @@ audio_device_default = "系統預設 (%@)";
 
 // Modal messages
 modal_processing = "處理中 (%d/%d)";
+
+// Playlist
+playlist.add = "新增播放列表";
+playlist.add_track = "加入播放列表";
+playlist.create_name = "播放列表名稱";

@@ -24,6 +24,16 @@ struct ContentView: View {
                         VisualEffectShapeView(effect: UIBlurEffect(style: .regular)),
                         for: .tabBar
                     )
+                PlaylistListView()
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .tabItem {
+                        Label(NSLocalizedString("tabview_playlist", comment: ""), systemImage: "music.note.list")
+                    }
+                    .tag(TabCategory.playlist)
+                    .toolbarBackground(
+                        VisualEffectShapeView(effect: UIBlurEffect(style: .regular)),
+                        for: .tabBar
+                    )
                 SearchGridView()
                     .tabItem {
                         Label(NSLocalizedString("tabview_search", comment: ""), systemImage: "magnifyingglass")

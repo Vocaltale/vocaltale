@@ -28,8 +28,27 @@ class AudioPlaybackRepository: NSObject, ObservableObject {
 
     @Published var currentAlbum: Album?
     @Published var currentTrack: Track?
+    @Published var currentPlaylistTrack: PlaylistTrack?
     @Published var downloadProgress: Double = 0
     @Published var isDownloading = false
+
+    private var userDefaultsCurrentPlaylistID: String? {
+        get {
+            userDefaults?.string(forKey: "AUDIO_PLAYER_CURRENT_PLAYLIST")
+        }
+        set(value) {
+            userDefaults?.set(value, forKey: "AUDIO_PLAYER_CURRENT_PLAYLIST")
+        }
+    }
+
+    private var userDefaultsCurrentPlaylistTrackID: String? {
+        get {
+            userDefaults?.string(forKey: "AUDIO_PLAYER_CURRENT_PLAYLIST_TRACK")
+        }
+        set(value) {
+            userDefaults?.set(value, forKey: "AUDIO_PLAYER_CURRENT_PLAYLIST_TRACK")
+        }
+    }
 
     private var userDefaultsCurrentTrackID: String? {
         get {
@@ -63,7 +82,7 @@ class AudioPlaybackRepository: NSObject, ObservableObject {
         }
     }
 
-    @Published var playlist: [Track]?
+    @Published var playlist: [PlaylistItem]?
 
     @Published var isUsingDefaultDevice = true
 
@@ -168,9 +187,16 @@ extension AudioPlaybackRepository {
 
         playlist = nextPlaylist()
 
-        if let playlist,
-           let currentTrack {
-            currentTrackIndex = playlist.firstIndex(of: currentTrack)
+        if let playlist {
+            if let currentPlaylistTrack {
+                currentTrackIndex = playlist.firstIndex(where: { item in
+                    item.playlistTrack == currentPlaylistTrack
+                })
+            } else if let currentTrack {
+                currentTrackIndex = playlist.firstIndex(where: { item in
+                    item.track == currentTrack
+                })
+            }
         }
     }
 
@@ -249,12 +275,12 @@ extension AudioPlaybackRepository {
         let tracks = LibraryRepository.instance.tracks(for: album)
 
         if isShuffle {
-            playlist = tracks.shuffled()
+            playlist = tracks.shuffled().map { PlaylistItem(track: $0, playlistTrack: nil) }
         } else {
-            playlist = tracks
+            playlist = tracks.map { PlaylistItem(track: $0, playlistTrack: nil) }
         }
 
-        guard let track = playlist?.first
+        guard let track = playlist?.first?.track
         else {
             playlist = nil
             return
@@ -272,24 +298,66 @@ extension AudioPlaybackRepository {
         beginPlayback(of: audio)
     }
 
-    func play(_ track: Track) {
+//    func play(_ track: Track) {
+//        guard let album = LibraryRepository.instance.album(of: track.albumID),
+//              let audio = ubiquityURL(for: track, under: album)
+//        else {
+//            return
+//        }
+//
+//        let tracks = LibraryRepository.instance.tracks(for: album)
+//
+//        if isShuffle {
+//            playlist = shuffle(tracks, withFirstTrack: track)
+//        } else {
+//            playlist = tracks
+//        }
+//
+//        currentAlbum = album
+//        currentTrack = track
+//        currentTrackIndex = playlist?.firstIndex(of: track)
+//
+//        beginPlayback(of: audio)
+//    }
+
+    func play(_ playlistTracks: [PlaylistItem], from track: Track, with playlistTrack: PlaylistTrack?) {
         guard let album = LibraryRepository.instance.album(of: track.albumID),
               let audio = ubiquityURL(for: track, under: album)
         else {
             return
         }
 
-        let tracks = LibraryRepository.instance.tracks(for: album)
-
         if isShuffle {
-            playlist = shuffle(tracks, withFirstTrack: track)
+            let tracks = shuffle(playlistTracks, withFirstTrack: PlaylistItem(track: track, playlistTrack: playlistTrack))
+            playlist = tracks.compactMap { data in
+                if let playlistTrack = data.playlistTrack,
+                   let track = LibraryRepository.instance.track(of: playlistTrack.trackID) {
+                    return PlaylistItem(track: track, playlistTrack: playlistTrack)
+                }
+
+                return nil
+            }
         } else {
-            playlist = tracks
+            playlist = playlistTracks.compactMap { data in
+                if let playlistTrack = data.playlistTrack,
+                   let track = LibraryRepository.instance.track(of: playlistTrack.trackID) {
+                    return PlaylistItem(track: track, playlistTrack: playlistTrack)
+                }
+
+                return nil
+            }
         }
 
         currentAlbum = album
         currentTrack = track
-        currentTrackIndex = playlist?.firstIndex(of: track)
+        currentTrackIndex = playlist?.firstIndex(where: { item in
+            if let pt = item.playlistTrack {
+                return playlistTrack == pt
+            } else {
+                return track == item.track
+            }
+        })
+        currentPlaylistTrack = playlistTrack
 
         beginPlayback(of: audio)
     }
@@ -301,14 +369,16 @@ extension AudioPlaybackRepository {
         }
 
         if isShuffle {
-            playlist = shuffle(tracks, withFirstTrack: track)
+            playlist = shuffle(tracks.map { PlaylistItem(track: $0, playlistTrack: nil) }, withFirstTrack: PlaylistItem(track: track, playlistTrack: nil))
         } else {
-            playlist = tracks
+            playlist = tracks.map { PlaylistItem(track: $0, playlistTrack: nil) }
         }
 
         currentAlbum = album
         currentTrack = track
-        currentTrackIndex = playlist?.firstIndex(of: track)
+        currentTrackIndex = playlist?.firstIndex(where: { item in
+            item.track == track
+        })
 
         beginPlayback(of: audio)
     }
@@ -330,11 +400,13 @@ extension AudioPlaybackRepository {
                     self.playlist = nextPlaylist()
                     self.currentTrackIndex = 0
 
-                    currentTrack = self.playlist?.first
+                    currentTrack = self.playlist?.first?.track
+                    currentPlaylistTrack = self.playlist?.first?.playlistTrack
                 } else {
                     self.currentTrackIndex = currentTrackIndex - 1
 
-                    currentTrack = playlist[currentTrackIndex - 1]
+                    currentTrack = playlist[currentTrackIndex - 1].track
+                    currentPlaylistTrack = playlist[currentTrackIndex - 1].playlistTrack
                 }
             }
         }
@@ -353,18 +425,21 @@ extension AudioPlaybackRepository {
                     self.playlist = nextPlaylist()
                     self.currentTrackIndex = 0
 
-                    currentTrack = self.playlist?.first
+                    currentTrack = self.playlist?.first?.track
+                    currentPlaylistTrack = self.playlist?.first?.playlistTrack
                 }
             } else if currentTrackIndex < playlist.count - 1 {
                 self.currentTrackIndex = currentTrackIndex + 1
 
-                currentTrack = playlist[currentTrackIndex + 1]
+                currentTrack = playlist[currentTrackIndex + 1].track
+                currentPlaylistTrack = playlist[currentTrackIndex + 1].playlistTrack
             }
         } else {
             self.playlist = nextPlaylist()
             self.currentTrackIndex = 0
 
-            currentTrack = self.playlist?.first
+            currentTrack = self.playlist?.first?.track
+            currentPlaylistTrack = self.playlist?.first?.playlistTrack
         }
 
         if finished && !(isLoop || forceful) {
@@ -377,9 +452,18 @@ extension AudioPlaybackRepository {
 
 // MARK: private methods
 extension AudioPlaybackRepository {
-    private func shuffle(_ playlist: [Track], withFirstTrack track: Track) -> [Track] {
+    private func shuffle(_ playlist: [PlaylistItem], withFirstTrack track: PlaylistItem) -> [PlaylistItem] {
         var retval = Array(playlist)
-        if let index = playlist.firstIndex(of: track) {
+        if let playlistTrack = track.playlistTrack,
+           let index = playlist.firstIndex(where: { item in
+               item.playlistTrack == playlistTrack
+           }) {
+            retval.remove(at: index)
+            retval.shuffle()
+            retval.insert(track, at: 0)
+        } else if let index = playlist.firstIndex(where: { item in
+            track.track == item.track
+        }) {
             retval.remove(at: index)
             retval.shuffle()
             retval.insert(track, at: 0)
@@ -904,18 +988,30 @@ extension AudioPlaybackRepository {
                     currentAlbum = LibraryRepository.instance.album(of: currentTrack.albumID)
                 }
             }
+
+            if let currentPlaylistTrackID = userDefaultsCurrentPlaylistTrackID,
+                let currentPlaylistID = userDefaultsCurrentPlaylistID,
+               let playlist = LibraryRepository.instance.playlist(of: currentPlaylistID) {
+                let playlistTracks = LibraryRepository.instance.tracks(for: playlist)
+
+                currentPlaylistTrack = playlistTracks.first(where: { playlistTrack in
+                    playlistTrack.id == currentPlaylistTrackID
+                })
+            }
         }
     }
 
-    private func nextPlaylist() -> [Track]? {
-        if let playlist,
-           isShuffle {
-            return playlist.shuffled()
-
-        }
-
-        if let currentAlbum {
-            return LibraryRepository.instance.tracks(for: currentAlbum)
+    private func nextPlaylist() -> [PlaylistItem]? {
+        if let playlist {
+            if isLoop {
+                if isShuffle {
+                    return playlist.shuffled()
+                } else {
+                    return playlist
+                }
+            } else {
+                return nil
+            }
         }
 
         return nil
@@ -923,17 +1019,38 @@ extension AudioPlaybackRepository {
 
     private func updateUserDefaults() {
         userDefaults?.set(currentTrack?.id, forKey: "AUDIO_PLAYER_CURRENT_TRACK")
+        userDefaults?.set(currentPlaylistTrack?.id, forKey: "AUDIO_PLAYER_CURRENT_PLAYLIST_TRACK")
+        userDefaults?.set(currentPlaylistTrack?.playlistID, forKey: "AUDIO_PLAYER_CURRENT_PLAYLIST")
     }
 
     private func play() {
-        guard let currentTrack,
-              let currentAlbum = LibraryRepository.instance.album(of: currentTrack.albumID),
-              let audio = ubiquityURL(for: currentTrack, under: currentAlbum)
-        else {
-            return
-        }
+        if let currentTrack,
+           let currentAlbum = LibraryRepository.instance.album(of: currentTrack.albumID),
+           let audio = ubiquityURL(for: currentTrack, under: currentAlbum) {
+            beginPlayback(of: audio)
+        } else if let currentPlaylistTrack,
+                  let currentTrack = LibraryRepository.instance.track(of: currentPlaylistTrack.trackID),
+                  let currentPlaylist = LibraryRepository.instance.playlist(of: currentPlaylistTrack.playlistID) {
+            let playlistTracks = LibraryRepository.instance.tracks(for: currentPlaylist)
+            let ids = playlistTracks.map { playlistTrack in
+                playlistTrack.trackID
+            }
+            let tracks = LibraryRepository.instance.tracks.filter { track in
+                ids.contains(track.id)
+            }
 
-        beginPlayback(of: audio)
+            let finalized = playlistTracks.compactMap { playlistTrack in
+                if let track = tracks.first(where: { t in
+                    t.id == playlistTrack.trackID
+                }) {
+                    return PlaylistItem(track: track, playlistTrack: playlistTrack)
+                }
+
+                return nil
+            }
+
+            play(finalized, from: currentTrack, with: currentPlaylistTrack)
+        }
     }
 
     @objc private func togglePlayer(event: MPRemoteCommandEvent) -> MPRemoteCommandHandlerStatus {

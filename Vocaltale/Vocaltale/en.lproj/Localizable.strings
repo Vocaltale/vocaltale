@@ -16,6 +16,7 @@ sidebar_create_library = "Create Library";
 sidebar_open_library = "Open Library";
 sidebar_library = "Library";
 sidebar_track = "Tracks";
+sidebar_playlist = "Playlists";
 
 sidebar_album = "Albums";
 sidebar_album_delete = "Delete Album";
@@ -44,3 +45,8 @@ audio_device_default = "System Default (%@)";
 
 // Modal messages
 modal_processing = "Processing (%d/%d)";
+
+// Playlist
+playlist.add = "Add a Playlist";
+playlist.add_track = "Add to Playlist";
+playlist.create_name = "Playlist name";

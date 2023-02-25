@@ -7,6 +7,7 @@
 */
 
 navbar_library = "Library";
+navbar_playlist = "Playlist";
 navbar_search = "Search";
 
 tabview_search_keyword_placeholder = "Search";
@@ -16,6 +17,7 @@ tabview_create_library = "Create Library";
 tabview_open_library = "Open Library";
 tabview_library = "Library";
 tabview_player = "Player";
+tabview_playlist = "Playlist";
 
 tabview_album = "Albums";
 tabview_album_delete = "Delete Album";

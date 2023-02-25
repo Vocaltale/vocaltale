@@ -214,7 +214,9 @@ extension LibraryService {
 
         startMetadataQuery(for: url)
 
-        WindowRepository.instance.isShowingModal = true
+#if os(OSX)
+        WindowRepository.instance.isShowingProgressModal = true
+#endif
 
         do {
             try FileManager.default.startDownloadingUbiquitousItem(at: url.iCloud)
@@ -322,6 +324,7 @@ extension LibraryService {
         LibraryRepository.instance.event = LibraryEvent(state: .loading)
 
         try? MediaMigrations1.up(db: mediaDatabase)
+        try? MediaMigrations2.up(db: mediaDatabase)
 
         let info = prepareLibraryInfo(
             for: url,

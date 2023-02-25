@@ -38,11 +38,11 @@ struct ContentView: View {
                         LibrarySidebarTitle()
                     }
                     Section {
-                        AlbumSidebarView(
+                        PlaylistSidebarView(
                             category: $category
                         )
                     } header: {
-                        AlbumSidebarTitle()
+                        PlaylistSideberTitle()
                     }
                 }
                 .padding(.all, 12.0)
@@ -50,6 +50,7 @@ struct ContentView: View {
             .onTapGesture {
                 category = .none
                 libraryRepository.currentAlbum = nil
+                libraryRepository.currentPlaylist = nil
             }
             .navigationSplitViewColumnWidth(min: 192, ideal: 256, max: 320)
         } detail: {
@@ -58,9 +59,9 @@ struct ContentView: View {
                 case .search:
                     SearchContentView()
                 case .album:
-                    if let selectedAlbumId = libraryRepository.currentAlbumID,
+                    if let selectedAlbumID = libraryRepository.currentAlbumID,
                        let album = libraryRepository.albums.first(where: { a in
-                        a.uuid == selectedAlbumId
+                        a.uuid == selectedAlbumID
                        }) {
                         AlbumContentView(album: album)
                     } else {
@@ -68,6 +69,12 @@ struct ContentView: View {
                     }
                 case .allAlbum:
                     AlbumListContentView()
+                case .playlist:
+                    if let selectedPlaylist = libraryRepository.currentPlaylist {
+                        PlaylistContentView(playlist: selectedPlaylist)
+                    } else {
+                        Spacer()
+                    }
                 default:
                     Spacer()
                 }
@@ -83,8 +90,12 @@ struct ContentView: View {
         }
         .navigationSplitViewStyle(.balanced)
         .toolbar(.hidden, for: .automatic, .windowToolbar)
-        .sheet(isPresented: $windowRepository.isShowingModal) {
-            ModalView()
+        .sheet(isPresented: $windowRepository.isShowingProgressModal) {
+            ProgressModalView()
+                .padding(.all, 16)
+        }
+        .sheet(isPresented: $windowRepository.isShowingAddPlaylistModel) {
+            AddPlaylistModelView()
                 .padding(.all, 16)
         }
         .onChange(of: category) { value in
@@ -101,7 +112,7 @@ struct ContentView: View {
             }
         }
         .onChange(of: libraryRepository.event.state) { value in
-            windowRepository.isShowingModal = value == .loading
+            windowRepository.isShowingProgressModal = value == .loading
         }
         .overlay {
             if windowRepository.isChildDragging {

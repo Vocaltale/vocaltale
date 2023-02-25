@@ -40,6 +40,7 @@ private struct TrackContextMenu: View {
 
 struct TrackListItem: View {
     let track: Track
+    let order: Int
 
     enum DisplayOption {
         case track
@@ -92,7 +93,7 @@ struct TrackListItem: View {
                 .frame(maxWidth: 24, maxHeight: 48)
             }
             if options.contains(.track) {
-                Text(track.track.formatted())
+                Text(order.formatted())
                     .frame(width: 36, alignment: .leading)
             }
             if options.contains(.name) {

@@ -7,6 +7,7 @@
 */
 
 navbar_library = "歌庫";
+navbar_playlist = "播放清單";
 navbar_search = "搜尋";
 
 tabview_search_keyword_placeholder = "搜尋";
@@ -16,6 +17,7 @@ tabview_create_library = "建立歌庫";
 tabview_open_library = "開啟歌庫";
 tabview_library = "歌庫";
 tabview_player = "播放器";
+tabview_playlist = "播放列表";
 
 tabview_album = "專輯";
 tabview_album_delete = "移除專輯";

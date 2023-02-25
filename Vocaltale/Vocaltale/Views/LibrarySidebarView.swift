@@ -31,6 +31,7 @@ struct LibrarySidebarView: View {
             .onTapGesture {
                 category = .allAlbum
                 libraryRepository.currentAlbum = nil
+                libraryRepository.currentPlaylist = nil
             }
         }
         .padding(EdgeInsets(top: 4, leading: 12, bottom: 4, trailing: 12))

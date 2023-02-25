@@ -14,7 +14,6 @@ jobs:
     name: Build macOS App as Artifacts
     runs-on: macos-12
     env:
-      CURRENT_PROJECT_VERSION: ${{ github.run_number }}
       KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
       CERTIFICATE: ${{ secrets.CERTIFICATE }}
       CERTIFICATE_PASSWORD: ${{ secrets.CERTIFICATE_PASSWORD }}
@@ -65,7 +64,6 @@ jobs:
     name: Build macOS App and upload to App Store Connect
     runs-on: macos-12
     env:
-      CURRENT_PROJECT_VERSION: ${{ github.run_number }}
       KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
       CERTIFICATE: ${{ secrets.CERTIFICATE }}
       CERTIFICATE_PASSWORD: ${{ secrets.CERTIFICATE_PASSWORD }}
@@ -117,7 +115,6 @@ jobs:
     name: Build iOS App and upload to App Store Connect
     runs-on: macos-12
     env:
-      CURRENT_PROJECT_VERSION: ${{ github.run_number }}
       KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
       CERTIFICATE: ${{ secrets.CERTIFICATE }}
       CERTIFICATE_PASSWORD: ${{ secrets.CERTIFICATE_PASSWORD }}

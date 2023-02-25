@@ -82,7 +82,10 @@ struct SearchContentView: AlbumCardListViewMixins, View {
     private var trackContentView: some View {
         LazyVStack {
             ForEach(tracks, id: \.id) { track in
-                TrackListItem(track: track, options: [
+                TrackListItem(
+                    track: track,
+                    order: track.track,
+                    options: [
                     .coverArt,
                     .name,
                     .duration

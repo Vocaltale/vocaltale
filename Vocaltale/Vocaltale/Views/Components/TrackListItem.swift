@@ -22,24 +22,35 @@ private struct TrackContextMenuPreview: View {
 private struct TrackContextMenu: View {
     let track: Track
 
-    @State private var keyword: String = ""
+    @ObservedObject private var libraryRepository = LibraryRepository.instance
+    @ObservedObject private var windowRepository = WindowRepository.instance
 
     var body: some View {
         TrackContextMenuPreview(track: track)
         Divider()
-        Menu("Add to Playlist") {
+        Menu("playlist.add_track") {
             Button {
-
+                windowRepository.isShowingAddPlaylistModel = true
             } label: {
-                Label("Add Playlist", image: "plus")
+                Label(NSLocalizedString("playlist.add", comment: ""), image: "plus")
             }
-            Divider()
+            if !libraryRepository.playlists.isEmpty {
+                Divider()
+                ForEach(libraryRepository.playlists, id: \.id) { playlist in
+                    Button {
+                        libraryRepository.add(track: track, to: playlist)
+                    } label: {
+                        Label(playlist.name, image: "plus")
+                    }
+                }
+            }
         }
     }
 }
 
 struct TrackListItem: View {
     let track: Track
+    let order: Int
 
     enum DisplayOption {
         case track
@@ -92,7 +103,7 @@ struct TrackListItem: View {
                 .frame(maxWidth: 48, maxHeight: 48)
             }
             if options.contains(.track) {
-                Text(track.track.formatted())
+                Text(order.formatted())
                     .frame(width: 64, alignment: .leading)
             }
             if options.contains(.name) {
@@ -125,8 +136,8 @@ struct TrackListItem: View {
         .onTapGesture {
             onClick()
         }
-        //        .contextMenu {
-        //            TrackContextMenu(track: track)
-        //        }
+        .contextMenu {
+            TrackContextMenu(track: track)
+        }
     }
 }

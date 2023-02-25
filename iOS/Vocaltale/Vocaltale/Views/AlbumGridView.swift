@@ -22,8 +22,6 @@ private struct AlbumListContentBackgroundDropDelegate: DropDelegate {
 
         self.dragged = nil
 
-        WindowRepository.instance.isChildDragging = false
-
         return true
     }
 }
@@ -64,8 +62,6 @@ private struct AlbumListContentDropDelegate: DropDelegate {
 
         self.dragged = nil
 
-        WindowRepository.instance.isChildDragging = false
-
         return true
     }
 }
@@ -75,17 +71,6 @@ struct AlbumGridView: View {
     @ObservedObject private var windowRepository = WindowRepository.instance
     @ObservedObject private var audioPlayerRepository = AudioPlaybackRepository.instance
     @State private var selectedTrack: Track?
-
-    private func discs(_ album: Album) -> [Int] {
-        var set = Set<Int>()
-
-        for track in libraryRepository.tracks(for: album) {
-            let disc = track.disc
-            set.insert(disc)
-        }
-
-        return set.sorted()
-    }
 
     private func tracks(for disc: Int, of album: Album) -> [Track] {
         return libraryRepository.tracks(for: album).filter { track in
@@ -113,7 +98,6 @@ struct AlbumGridView: View {
                                     )
                                     .clipShape(RoundedRectangle(cornerRadius: 8.0))
                                     .onDrag {
-                                        windowRepository.isChildDragging = true
                                         dragged = album
                                         return NSItemProvider(object: album.uuid as NSString)
                                     }
@@ -129,6 +113,7 @@ struct AlbumGridView: View {
                             }.simultaneousGesture(
                                 TapGesture().onEnded({ _ in
                                     libraryRepository.currentAlbum = album
+                                    libraryRepository.currentPlaylist = nil
                                 })
                             )
                         }
