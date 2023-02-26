@@ -33,6 +33,7 @@ class LibraryRepository: ObservableObject {
     @Published var processedFileCount = 0
     @Published var isDownloading = false
     @Published var downloadProgress: Double = 0.0
+    @Published var isReorderedPlaylistTracks = false
 
     private let transactionQueue = DispatchQueue(label: "transaction", attributes: .concurrent)
     private let transactionLock = DispatchSemaphore(value: 1)
@@ -471,6 +472,41 @@ class LibraryRepository: ObservableObject {
         }
     }
 
+    func delete(
+        _ playlistTrack: PlaylistTrack,
+        from playlist: Playlist,
+        completion: @escaping () -> Void
+    ) {
+        guard let db = event.library?.mediaDatabase
+        else {
+            return
+        }
+
+        transactionQueue.async {
+            self.transactionLock.wait()
+
+            Task {
+                do {
+                    try await db.raw("begin transaction;").run()
+
+                    try await self.tryDeletePlaylistTrack(db, playlistTrack)
+
+                    try await db.raw("commit;").run()
+                } catch {
+                    debugPrint("???", error)
+                    try? await db.raw("rollback;").run()
+                }
+
+                self.transactionLock.signal()
+
+                await MainActor.run(body: {
+                    LibraryRepository.instance.isReorderedPlaylistTracks = true
+                    completion()
+                })
+            }
+        }
+    }
+
     func delete(album: Album) {
         guard let db = event.library?.mediaDatabase,
               let ubiquityURL = ubiquityCurrentLibraryURL,
@@ -762,7 +798,12 @@ extension LibraryRepository {
         return nil
     }
 
-    private func tryAddTrack(_ db: SQLDatabase, _ inputTrack: Track, _ album: Album, _ artist: Artist) async throws -> Track? {
+    private func tryAddTrack(
+        _ db: SQLDatabase,
+        _ inputTrack: Track,
+        _ album: Album,
+        _ artist: Artist
+    ) async throws -> Track? {
         if !tracks.contains(inputTrack) {
             let track = Track(
                 track: inputTrack.track,
@@ -807,21 +848,69 @@ extension LibraryRepository {
     }
 
     private func tryDeleteTracks(_ db: SQLDatabase, _ album: Album) async throws {
-        try await db.delete(from: "tracks")
-            .where("albumID", .equal, album.uuid)
-            .run()
-
         let tracks = try await db.select()
             .from("tracks")
             .columns("*")
-            .where("albumID", .equal, album.uuid)
+            .where("albumID", .equal, album.id)
             .all(decoding: Track.self)
+
+        var affected: [Playlist] = []
+        for track in tracks {
+            let playlistTracks = try await db.select()
+                .from("playlist_tracks")
+                .columns("*")
+                .where("trackID", .equal, track.id)
+                .all(decoding: PlaylistTrack.self)
+
+            var playlist: [Playlist] = []
+            for playlistTrack in playlistTracks {
+                let result = try await db.select()
+                    .from("playlists")
+                    .columns("*")
+                    .where("uuid", .equal, playlistTrack.playlistID)
+                    .all(decoding: Playlist.self)
+                playlist.append(contentsOf: result)
+            }
+            affected.append(contentsOf: playlists)
+        }
 
         try await db.delete(from: "playlist_tracks")
             .where("trackID", .in, tracks.map({ track in
                 track.uuid
             }))
             .run()
+
+        let playlists = Set(affected)
+        for playlist in playlists {
+            let playlistTracks = try await db.select()
+                .from("playlist_tracks")
+                .column("*")
+                .where("playlistID", .equal, playlist.id)
+                .orderBy("order", .ascending)
+                .all(decoding: PlaylistTrack.self)
+            try await tryReorder(db, to: playlistTracks)
+        }
+
+        try await db.delete(from: "tracks")
+            .where("albumID", .equal, album.uuid)
+            .run()
+    }
+
+    private func tryDeletePlaylistTrack(
+        _ db: SQLDatabase,
+        _ playlistTrack: PlaylistTrack
+    ) async throws{
+        try await db.delete(from: "playlist_tracks")
+            .where("uuid", .equal, playlistTrack.id)
+            .run()
+
+        let playlistTracks = try await db.select()
+            .from("playlist_tracks")
+            .column("*")
+            .where("playlistID", .equal, playlistTrack.playlistID)
+            .orderBy("order", .ascending)
+            .all(decoding: PlaylistTrack.self)
+        try await tryReorder(db, to: playlistTracks)
     }
 
     private func tryDeleteArtist(_ db: SQLDatabase, _ album: Album) async throws -> String? {
@@ -870,5 +959,8 @@ extension LibraryRepository {
                 .set("order", to: i + 1)
                 .run()
         }
+        await MainActor.run(body: {
+            self.isReorderedPlaylistTracks = true
+        })
     }
 }

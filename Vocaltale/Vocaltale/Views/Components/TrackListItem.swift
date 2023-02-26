@@ -8,11 +8,11 @@
 import SwiftUI
 
 private struct TrackContextMenuPreview: View {
-    let track: Track
+    let item: PlaylistItem
 
     var body: some View {
         VStack {
-            Text(track.displayName)
+            Text(item.track.displayName)
                 .font(.system(Font.TextStyle.caption))
                 .bold()
                 .lineLimit(2)
@@ -20,13 +20,14 @@ private struct TrackContextMenuPreview: View {
     }
 }
 private struct TrackContextMenu: View {
-    let track: Track
+    let item: PlaylistItem
+    let playlist: Playlist?
 
     @ObservedObject private var libraryRepository = LibraryRepository.instance
     @ObservedObject private var windowRepository = WindowRepository.instance
 
     var body: some View {
-        TrackContextMenuPreview(track: track)
+        TrackContextMenuPreview(item: item)
         Divider()
         Menu("playlist.add_track") {
             Button {
@@ -38,19 +39,33 @@ private struct TrackContextMenu: View {
                 Divider()
                 ForEach(libraryRepository.playlists, id: \.id) { playlist in
                     Button {
-                        libraryRepository.add(track: track, to: playlist)
+                        libraryRepository.add(track: item.track, to: playlist)
                     } label: {
                         Label(playlist.name, image: "plus")
                     }
                 }
             }
         }
+        if let playlist {
+            Divider()
+            Button {
+                if let playlistTrack = item.playlistTrack {
+                    windowRepository.isShowingProgressModal = true
+                    libraryRepository.delete(playlistTrack, from: playlist) {
+                        windowRepository.isShowingProgressModal = false
+                    }
+                }
+            } label: {
+                Label(NSLocalizedString("playlist.remove_track", comment: ""), image: "trash.fill")
+            }
+        }
     }
 }
 
 struct TrackListItem: View {
-    let track: Track
+    let item: PlaylistItem
     let order: Int
+    let playlist: Playlist?
 
     enum DisplayOption {
         case track
@@ -73,7 +88,7 @@ struct TrackListItem: View {
 
     private var artworkURL: URL? {
         return libraryRepository.currentLibraryURL?.appending(path: "metadata")
-            .appending(path: track.albumID)
+            .appending(path: item.track.albumID)
             .appending(path: "artwork")
     }
 
@@ -108,11 +123,11 @@ struct TrackListItem: View {
             }
             if options.contains(.name) {
                 VStack(alignment: .leading) {
-                    Text(track.displayName)
+                    Text(item.track.displayName)
                         .font(.body)
                         .bold()
                         .lineLimit(1)
-                    Text(track.displayArtist)
+                    Text(item.track.displayArtist)
                         .font(.body)
                         .foregroundColor(.secondary)
                         .lineLimit(1)
@@ -121,7 +136,7 @@ struct TrackListItem: View {
             Spacer()
             if options.contains(.duration) {
                 Text(
-                    Duration.seconds(track.duration).formatted(
+                    Duration.seconds(item.track.duration).formatted(
                         .time(pattern: .minuteSecond(padMinuteToLength: 2))
                     )
                 )
@@ -137,7 +152,7 @@ struct TrackListItem: View {
             onClick()
         }
         .contextMenu {
-            TrackContextMenu(track: track)
+            TrackContextMenu(item: item, playlist: playlist)
         }
     }
 }

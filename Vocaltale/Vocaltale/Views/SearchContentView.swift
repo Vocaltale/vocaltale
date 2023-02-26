@@ -83,8 +83,9 @@ struct SearchContentView: AlbumCardListViewMixins, View {
         LazyVStack {
             ForEach(tracks, id: \.id) { track in
                 TrackListItem(
-                    track: track,
+                    item: PlaylistItem(track: track, playlistTrack: nil),
                     order: track.track,
+                    playlist: nil,
                     options: [
                     .coverArt,
                     .name,

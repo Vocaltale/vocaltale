@@ -241,11 +241,10 @@ extension AudioPlaybackRepository {
             return
         }
 
-        if let currentTrack,
-           let album = LibraryRepository.instance.album(of: currentTrack.albumID) {
-            play(LibraryRepository.instance.tracks(for: album), of: album, from: currentTrack)
+        if let playlist = LibraryRepository.instance.currentPlaylist {
+            play(playlist: playlist, from: currentPlaylistTrack)
         } else if let album = LibraryRepository.instance.currentAlbum {
-            play(album: album)
+            play(album: album, from: currentTrack)
         }
     }
 
@@ -271,19 +270,22 @@ extension AudioPlaybackRepository {
         }
     }
 
-    func play(album: Album) {
+    func play(album: Album, from track: Track? = nil) {
         let tracks = LibraryRepository.instance.tracks(for: album)
 
-        if isShuffle {
-            playlist = tracks.shuffled().map { PlaylistItem(track: $0, playlistTrack: nil) }
-        } else {
-            playlist = tracks.map { PlaylistItem(track: $0, playlistTrack: nil) }
-        }
-
-        guard let track = playlist?.first?.track
+        guard let track = track ?? playlist?.first?.track
         else {
             playlist = nil
             return
+        }
+
+        if isShuffle {
+            playlist = shuffle(
+                tracks.map { PlaylistItem(track: $0, playlistTrack: nil) },
+                withFirstTrack: PlaylistItem(track: track, playlistTrack: nil)
+            )
+        } else {
+            playlist = tracks.map { PlaylistItem(track: $0, playlistTrack: nil) }
         }
 
         guard let audio = ubiquityURL(for: track, under: album)
@@ -293,32 +295,36 @@ extension AudioPlaybackRepository {
 
         currentAlbum = album
         currentTrack = track
-        currentTrackIndex = 0
+        currentTrackIndex = playlist?.firstIndex(where: { item in
+            item.track.id == track.id
+        })
 
         beginPlayback(of: audio)
     }
 
-//    func play(_ track: Track) {
-//        guard let album = LibraryRepository.instance.album(of: track.albumID),
-//              let audio = ubiquityURL(for: track, under: album)
-//        else {
-//            return
-//        }
-//
-//        let tracks = LibraryRepository.instance.tracks(for: album)
-//
-//        if isShuffle {
-//            playlist = shuffle(tracks, withFirstTrack: track)
-//        } else {
-//            playlist = tracks
-//        }
-//
-//        currentAlbum = album
-//        currentTrack = track
-//        currentTrackIndex = playlist?.firstIndex(of: track)
-//
-//        beginPlayback(of: audio)
-//    }
+    func play(playlist: Playlist, from: PlaylistTrack?) {
+        let playlistTracks = LibraryRepository.instance.tracks(for: playlist)
+        guard let first = from ?? playlistTracks.first,
+              let track = LibraryRepository.instance.track(of: first.trackID)
+        else {
+            return
+        }
+        let ids = playlistTracks.map { playlistTrack in
+            playlistTrack.trackID
+        }
+        let tracks = LibraryRepository.instance.tracks.filter { t in
+            ids.contains(t.id)
+        }
+        let playlistItems = playlistTracks.compactMap { playlistTrack in
+            if let t = tracks.first(where: { $0.id == playlistTrack.trackID }) {
+                return PlaylistItem(track: t, playlistTrack: playlistTrack)
+            }
+
+            return nil
+        }
+
+        play(playlistItems, from: track, with: first)
+    }
 
     func play(_ playlistTracks: [PlaylistItem], from track: Track, with playlistTrack: PlaylistTrack?) {
         guard let album = LibraryRepository.instance.album(of: track.albumID),
@@ -328,7 +334,10 @@ extension AudioPlaybackRepository {
         }
 
         if isShuffle {
-            let tracks = shuffle(playlistTracks, withFirstTrack: PlaylistItem(track: track, playlistTrack: playlistTrack))
+            let tracks = shuffle(
+                playlistTracks,
+                withFirstTrack: PlaylistItem(track: track, playlistTrack: playlistTrack)
+            )
             playlist = tracks.compactMap { data in
                 if let playlistTrack = data.playlistTrack,
                    let track = LibraryRepository.instance.track(of: playlistTrack.trackID) {
@@ -358,27 +367,6 @@ extension AudioPlaybackRepository {
             }
         })
         currentPlaylistTrack = playlistTrack
-
-        beginPlayback(of: audio)
-    }
-
-    func play(_ tracks: [Track], of album: Album, from track: Track) {
-        guard let audio = ubiquityURL(for: track, under: album)
-        else {
-            return
-        }
-
-        if isShuffle {
-            playlist = shuffle(tracks.map { PlaylistItem(track: $0, playlistTrack: nil) }, withFirstTrack: PlaylistItem(track: track, playlistTrack: nil))
-        } else {
-            playlist = tracks.map { PlaylistItem(track: $0, playlistTrack: nil) }
-        }
-
-        currentAlbum = album
-        currentTrack = track
-        currentTrackIndex = playlist?.firstIndex(where: { item in
-            item.track == track
-        })
 
         beginPlayback(of: audio)
     }
@@ -859,19 +847,25 @@ extension AudioPlaybackRepository {
                     return image.withRenderingMode(image.renderingMode)
                 })
             } else {
-                mediaPlayerInfoCenter.nowPlayingInfo?[
-                    MPMediaItemPropertyArtwork
-                ] = MPMediaItemArtwork(
+                var hasImage = false
+                let artwork = MPMediaItemArtwork(
                     boundsSize: CGSize(width: 1024, height: 1024),
                     requestHandler: { newSize -> UIImage in
                         let image = DispatchQueue.main.sync {
                             let renderer = ImageRenderer(content: ArtworkIcon())
                             renderer.proposedSize = ProposedViewSize(width: newSize.width, height: newSize.height)
-                            return renderer.uiImage!
+                            return renderer.uiImage
                         }
-                        return image
+                        if image != nil {
+                            hasImage = true
+                        }
+                        return image ?? UIImage()
                     }
                 )
+
+                mediaPlayerInfoCenter.nowPlayingInfo?[
+                    MPMediaItemPropertyArtwork
+                ] = hasImage ? artwork : nil
             }
         }
     }
@@ -1024,33 +1018,40 @@ extension AudioPlaybackRepository {
     }
 
     private func play() {
-        if let currentTrack,
-           let currentAlbum = LibraryRepository.instance.album(of: currentTrack.albumID),
-           let audio = ubiquityURL(for: currentTrack, under: currentAlbum) {
-            beginPlayback(of: audio)
-        } else if let currentPlaylistTrack,
-                  let currentTrack = LibraryRepository.instance.track(of: currentPlaylistTrack.trackID),
-                  let currentPlaylist = LibraryRepository.instance.playlist(of: currentPlaylistTrack.playlistID) {
-            let playlistTracks = LibraryRepository.instance.tracks(for: currentPlaylist)
-            let ids = playlistTracks.map { playlistTrack in
-                playlistTrack.trackID
-            }
-            let tracks = LibraryRepository.instance.tracks.filter { track in
-                ids.contains(track.id)
-            }
-
-            let finalized = playlistTracks.compactMap { playlistTrack in
-                if let track = tracks.first(where: { t in
-                    t.id == playlistTrack.trackID
-                }) {
-                    return PlaylistItem(track: track, playlistTrack: playlistTrack)
-                }
-
-                return nil
-            }
-
-            play(finalized, from: currentTrack, with: currentPlaylistTrack)
+        if let playlist = LibraryRepository.instance.currentPlaylist {
+            play(playlist: playlist, from: currentPlaylistTrack)
+        } else if let album = LibraryRepository.instance.currentAlbum {
+            play(album: album, from: currentTrack)
         }
+//
+//
+//        if let currentTrack,
+//           let currentAlbum = LibraryRepository.instance.album(of: currentTrack.albumID),
+//           let audio = ubiquityURL(for: currentTrack, under: currentAlbum) {
+//            beginPlayback(of: audio)
+//        } else if let currentPlaylistTrack,
+//                  let currentTrack = LibraryRepository.instance.track(of: currentPlaylistTrack.trackID),
+//                  let currentPlaylist = LibraryRepository.instance.playlist(of: currentPlaylistTrack.playlistID) {
+//            let playlistTracks = LibraryRepository.instance.tracks(for: currentPlaylist)
+//            let ids = playlistTracks.map { playlistTrack in
+//                playlistTrack.trackID
+//            }
+//            let tracks = LibraryRepository.instance.tracks.filter { track in
+//                ids.contains(track.id)
+//            }
+//
+//            let finalized = playlistTracks.compactMap { playlistTrack in
+//                if let track = tracks.first(where: { t in
+//                    t.id == playlistTrack.trackID
+//                }) {
+//                    return PlaylistItem(track: track, playlistTrack: playlistTrack)
+//                }
+//
+//                return nil
+//            }
+//
+//            play(finalized, from: currentTrack, with: currentPlaylistTrack)
+//        }
     }
 
     @objc private func togglePlayer(event: MPRemoteCommandEvent) -> MPRemoteCommandHandlerStatus {

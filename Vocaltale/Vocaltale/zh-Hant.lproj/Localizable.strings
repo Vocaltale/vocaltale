@@ -49,4 +49,5 @@ modal_processing = "處理中 (%d/%d)";
 // Playlist
 playlist.add = "新增播放列表";
 playlist.add_track = "加入播放列表";
+playlist.remove_track = "移除";
 playlist.create_name = "播放列表名稱";

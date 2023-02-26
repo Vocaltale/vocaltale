@@ -46,16 +46,14 @@ struct AlbumContentView: View {
 
                     ForEach(tracks(for: disc), id: \.id) { track in
                         TrackListItem(
-                            track: track,
+                            item: PlaylistItem(track: track, playlistTrack: nil),
                             order: track.track,
+                            playlist: nil,
                             selected: selected ?? audioPlayerRepository.currentTrack == track
                         ) {
                             if selected ?? audioPlayerRepository.currentTrack == track {
-                                let tracks = libraryRepository.tracks(for: album)
-
                                 audioPlayerRepository.play(
-                                    tracks,
-                                    of: album,
+                                    album: album,
                                     from: track
                                 )
 

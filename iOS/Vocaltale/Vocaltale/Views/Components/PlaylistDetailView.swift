@@ -15,7 +15,9 @@ struct PlaylistDetailView: View {
     @State private var selected: PlaylistTrack?
 
     private func tracks() -> [PlaylistItem] {
-        let playlistTracks = libraryRepository.tracks(for: playlist)
+        let playlistTracks = libraryRepository.tracks(for: playlist).sorted { trackA, trackB in
+            trackA.order < trackB.order
+        }
         let ids = playlistTracks.map { playlistTrack in
             playlistTrack.trackID
         }
@@ -42,8 +44,9 @@ struct PlaylistDetailView: View {
             ) {
                 ForEach(tracks(), id: \.id) { item in
                     TrackListItem(
-                        track: item.track,
+                        item: item,
                         order: item.playlistTrack?.order ?? item.track.track,
+                        playlist: playlist,
                         selected: selected ?? audioPlayerRepository.currentPlaylistTrack == item.playlistTrack
                     ) {
                         if selected ??

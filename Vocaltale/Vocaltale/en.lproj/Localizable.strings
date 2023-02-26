@@ -49,4 +49,5 @@ modal_processing = "Processing (%d/%d)";
 // Playlist
 playlist.add = "Add a Playlist";
 playlist.add_track = "Add to Playlist";
+playlist.remove_track = "Remove from Playlist";
 playlist.create_name = "Playlist name";
