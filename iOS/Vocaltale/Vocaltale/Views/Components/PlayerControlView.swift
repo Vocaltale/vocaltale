@@ -29,9 +29,9 @@ struct PlayerControlView: View {
         return nil
     }
 
-    private var playlist: Playlist? {
-        return libraryRepository.currentPlaylist
-    }
+//    private var playlist: Playlist? {
+//        return libraryRepository.currentPlaylist
+//    }
 
     private var artworkURL: URL? {
         if let album {
@@ -67,11 +67,46 @@ struct PlayerControlView: View {
         return nil
     }
 
+    private var playlist: [PlaylistItem] {
+        if let currentPlaylist = audioPlayerRepository.playlist {
+            return currentPlaylist
+        }
+
+        if let currentPlaylist = libraryRepository.currentPlaylist {
+            let playlistTracks = libraryRepository.tracks(for: currentPlaylist)
+            let ids = playlistTracks.map { $0.trackID }
+            let tracks = libraryRepository.tracks.filter { track in
+                ids.contains(track.id)
+            }
+
+            return playlistTracks.compactMap { playlistTrack in
+                if let track = tracks.first(where: { track in
+                    track.id == playlistTrack.trackID
+                }) {
+                    return PlaylistItem(track: track, playlistTrack: playlistTrack)
+                }
+
+                return nil
+            }
+        }
+
+        if let currentAlbum = libraryRepository.currentAlbum {
+            let tracks = libraryRepository.tracks.filter { track in
+                track.albumID == currentAlbum.id
+            }
+
+            return tracks.map { track in
+                return PlaylistItem(track: track, playlistTrack: nil)
+            }
+        }
+
+        return []
+    }
+
     var body: some View {
         VStack(alignment: .center) {
             Group {
-                if let album,
-                   let playlist = audioPlayerRepository.playlist {
+                if let album {
                     TrackView(track: audioPlayerRepository.currentTrack, album: album)
                         .contextMenu {
                             ForEach(playlist, id: \.id) { item in
@@ -104,9 +139,18 @@ struct PlayerControlView: View {
                         }
                         .simultaneousGesture(
                             TapGesture().onEnded({ _ in
-                                libraryRepository.currentAlbum = album
-                                windowRepository.navigationPath.setAlbum(album)
                                 windowRepository.isShowingPlayerSheet = false
+                                if let currentPlaylist = libraryRepository.currentPlaylist {
+                                    windowRepository.selectedTabTag = .playlist
+                                    libraryRepository.currentPlaylist = currentPlaylist
+                                    libraryRepository.currentAlbum = nil
+                                    windowRepository.navigationPath.setPlaylist(currentPlaylist)
+                                } else {
+                                    windowRepository.selectedTabTag = .library
+                                    libraryRepository.currentPlaylist = nil
+                                    libraryRepository.currentAlbum = album
+                                    windowRepository.navigationPath.setAlbum(album)
+                                }
                             })
                         )
 

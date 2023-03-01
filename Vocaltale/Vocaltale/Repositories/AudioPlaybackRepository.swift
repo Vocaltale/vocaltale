@@ -28,6 +28,7 @@ class AudioPlaybackRepository: NSObject, ObservableObject {
 
     @Published var currentAlbum: Album?
     @Published var currentTrack: Track?
+    @Published var currentPlaylist: Playlist?
     @Published var currentPlaylistTrack: PlaylistTrack?
     @Published var downloadProgress: Double = 0
     @Published var isDownloading = false
@@ -323,6 +324,8 @@ extension AudioPlaybackRepository {
             return nil
         }
 
+        self.currentPlaylist = playlist
+
         play(playlistItems, from: track, with: first)
     }
 
@@ -361,9 +364,9 @@ extension AudioPlaybackRepository {
         currentTrack = track
         currentTrackIndex = playlist?.firstIndex(where: { item in
             if let pt = item.playlistTrack {
-                return playlistTrack == pt
+                return playlistTrack?.id == pt.id
             } else {
-                return track == item.track
+                return track.id == item.track.id
             }
         })
         currentPlaylistTrack = playlistTrack
@@ -847,25 +850,22 @@ extension AudioPlaybackRepository {
                     return image.withRenderingMode(image.renderingMode)
                 })
             } else {
-                var hasImage = false
-                let artwork = MPMediaItemArtwork(
+                mediaPlayerInfoCenter.nowPlayingInfo?[
+                    MPMediaItemPropertyArtwork
+                ] = MPMediaItemArtwork(
                     boundsSize: CGSize(width: 1024, height: 1024),
                     requestHandler: { newSize -> UIImage in
                         let image = DispatchQueue.main.sync {
                             let renderer = ImageRenderer(content: ArtworkIcon())
                             renderer.proposedSize = ProposedViewSize(width: newSize.width, height: newSize.height)
-                            return renderer.uiImage
+                            return renderer.cgImage
                         }
-                        if image != nil {
-                            hasImage = true
+                        if let image {
+                            return UIImage(cgImage: image)
                         }
-                        return image ?? UIImage()
+                        return UIImage()
                     }
                 )
-
-                mediaPlayerInfoCenter.nowPlayingInfo?[
-                    MPMediaItemPropertyArtwork
-                ] = hasImage ? artwork : nil
             }
         }
     }
@@ -1023,35 +1023,6 @@ extension AudioPlaybackRepository {
         } else if let album = LibraryRepository.instance.currentAlbum {
             play(album: album, from: currentTrack)
         }
-//
-//
-//        if let currentTrack,
-//           let currentAlbum = LibraryRepository.instance.album(of: currentTrack.albumID),
-//           let audio = ubiquityURL(for: currentTrack, under: currentAlbum) {
-//            beginPlayback(of: audio)
-//        } else if let currentPlaylistTrack,
-//                  let currentTrack = LibraryRepository.instance.track(of: currentPlaylistTrack.trackID),
-//                  let currentPlaylist = LibraryRepository.instance.playlist(of: currentPlaylistTrack.playlistID) {
-//            let playlistTracks = LibraryRepository.instance.tracks(for: currentPlaylist)
-//            let ids = playlistTracks.map { playlistTrack in
-//                playlistTrack.trackID
-//            }
-//            let tracks = LibraryRepository.instance.tracks.filter { track in
-//                ids.contains(track.id)
-//            }
-//
-//            let finalized = playlistTracks.compactMap { playlistTrack in
-//                if let track = tracks.first(where: { t in
-//                    t.id == playlistTrack.trackID
-//                }) {
-//                    return PlaylistItem(track: track, playlistTrack: playlistTrack)
-//                }
-//
-//                return nil
-//            }
-//
-//            play(finalized, from: currentTrack, with: currentPlaylistTrack)
-//        }
     }
 
     @objc private func togglePlayer(event: MPRemoteCommandEvent) -> MPRemoteCommandHandlerStatus {

@@ -157,9 +157,8 @@ struct PlaylistContentView: View {
                 playlist: $currentTracks
             )
         )
-        .onChange(of: libraryRepository.isReorderedPlaylistTracks) { _ in
+        .onChange(of: libraryRepository.playlistTracks) { _ in
             currentTracks = tracks()
-            libraryRepository.isReorderedPlaylistTracks = false
         }
         .onAppear {
             currentTracks = tracks()

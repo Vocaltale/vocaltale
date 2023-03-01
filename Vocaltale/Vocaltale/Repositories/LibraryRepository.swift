@@ -27,13 +27,13 @@ class LibraryRepository: ObservableObject {
     @Published var albums = [Album]()
     @Published var artists = [Artist]()
     @Published var playlists = [Playlist]()
+    @Published var playlistTracks = [PlaylistTrack]()
     @Published var searchResults: [SearchResultType: [AnyHashable]] = [:]
     @Published var keyword: String = ""
     @Published var fileCount = 0
     @Published var processedFileCount = 0
     @Published var isDownloading = false
     @Published var downloadProgress: Double = 0.0
-    @Published var isReorderedPlaylistTracks = false
 
     private let transactionQueue = DispatchQueue(label: "transaction", attributes: .concurrent)
     private let transactionLock = DispatchSemaphore(value: 1)
@@ -212,11 +212,17 @@ class LibraryRepository: ObservableObject {
                         .columns("*")
                         .all(decoding: Playlist.self)
 
+                    let playlistTracksResults = try await db.select()
+                        .from("playlist_tracks")
+                        .columns("*")
+                        .all(decoding: PlaylistTrack.self)
+
                     await MainActor.run {
                         self.albums = albumResults
                         self.tracks = trackResults
                         self.artists = artistResults
                         self.playlists = playlistResults
+                        self.playlistTracks = playlistTracksResults
 
                         self.event = LibraryEvent(state: .loaded, library: library, error: nil)
                     }
@@ -275,11 +281,17 @@ class LibraryRepository: ObservableObject {
                         .columns("*")
                         .all(decoding: Playlist.self)
 
+                    let playlistTracksResults = try await db.select()
+                        .from("playlist_tracks")
+                        .columns("*")
+                        .all(decoding: PlaylistTrack.self)
+
                     await MainActor.run {
                         self.albums = albumResults
                         self.tracks = trackResults
                         self.artists = artistResults
                         self.playlists = playlistResults
+                        self.playlistTracks = playlistTracksResults
 
                         self.event = LibraryEvent(state: .loaded, library: library, error: nil)
                     }
@@ -301,15 +313,8 @@ class LibraryRepository: ObservableObject {
     }
 
     func tracks(for playlist: Playlist) -> [PlaylistTrack] {
-        guard let db = event.library?.mediaDatabase
-        else {
-            return []
-        }
-
-        do {
-            return try tryFetchPlaylistTracks(db, playlist)
-        } catch {
-            return []
+        playlistTracks.filter { track in
+            track.playlistID == playlist.id
         }
     }
 
@@ -500,7 +505,6 @@ class LibraryRepository: ObservableObject {
                 self.transactionLock.signal()
 
                 await MainActor.run(body: {
-                    LibraryRepository.instance.isReorderedPlaylistTracks = true
                     completion()
                 })
             }
@@ -959,8 +963,5 @@ extension LibraryRepository {
                 .set("order", to: i + 1)
                 .run()
         }
-        await MainActor.run(body: {
-            self.isReorderedPlaylistTracks = true
-        })
     }
 }

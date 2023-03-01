@@ -15,4 +15,12 @@ extension NavigationPath {
 
         append(album)
     }
+
+    mutating func setPlaylist(_ playlist: Playlist) {
+        if count > 0 {
+            removeLast()
+        }
+
+        append(playlist)
+    }
 }

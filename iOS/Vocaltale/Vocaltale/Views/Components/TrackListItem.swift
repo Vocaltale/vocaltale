@@ -19,21 +19,38 @@ private struct TrackContextMenuPreview: View {
         }
     }
 }
+
 private struct TrackContextMenu: View {
     let item: PlaylistItem
+    let playlist: Playlist?
 
-    @State private var keyword: String = ""
+    @ObservedObject private var libraryRepository = LibraryRepository.instance
+    @ObservedObject private var windowRepository = WindowRepository.instance
 
     var body: some View {
         TrackContextMenuPreview(item: item)
         Divider()
-        Menu("Add to Playlist") {
-            Button {
-
-            } label: {
-                Label("Add Playlist", image: "plus")
+        Menu("playlist.add_track") {
+            if !libraryRepository.playlists.isEmpty {
+                Divider()
+                ForEach(libraryRepository.playlists, id: \.id) { playlist in
+                    Button {
+                        libraryRepository.add(track: item.track, to: playlist)
+                    } label: {
+                        Label(playlist.name, image: "plus")
+                    }
+                }
             }
+        }
+        if let playlist {
             Divider()
+            Button {
+                if let playlistTrack = item.playlistTrack {
+                    libraryRepository.delete(playlistTrack, from: playlist) {}
+                }
+            } label: {
+                Label(NSLocalizedString("playlist.remove_track", comment: ""), image: "trash.fill")
+            }
         }
     }
 }
@@ -129,7 +146,7 @@ struct TrackListItem: View {
             onClick()
         }
         .contextMenu {
-            TrackContextMenu(item: item)
+            TrackContextMenu(item: item, playlist: playlist)
         }
     }
 
