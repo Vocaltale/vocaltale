@@ -299,6 +299,8 @@ extension AudioPlaybackRepository {
         currentTrackIndex = playlist?.firstIndex(where: { item in
             item.track.id == track.id
         })
+        currentPlaylist = nil
+        currentPlaylistTrack = nil
 
         beginPlayback(of: audio)
     }
@@ -384,24 +386,30 @@ extension AudioPlaybackRepository {
     }
 
     func prev() {
-        DispatchQueue.main.sync {
-            if let currentTrackIndex,
-               let playlist {
-                if currentTrackIndex == 0 {
-                    self.playlist = nextPlaylist()
-                    self.currentTrackIndex = 0
+        if let currentTrackIndex,
+           let playlist {
+            if currentTrackIndex == 0 {
+                self.playlist = nextPlaylist()
+                self.currentTrackIndex = 0
 
-                    currentTrack = self.playlist?.first?.track
-                    currentPlaylistTrack = self.playlist?.first?.playlistTrack
-                } else {
-                    self.currentTrackIndex = currentTrackIndex - 1
+                currentTrack = self.playlist?.first?.track
+                currentPlaylistTrack = self.playlist?.first?.playlistTrack
+                if let currentTrack {
+                    currentAlbum = LibraryRepository.instance.album(of: currentTrack.albumID)
+                }
+            } else {
+                self.currentTrackIndex = currentTrackIndex - 1
 
-                    currentTrack = playlist[currentTrackIndex - 1].track
-                    currentPlaylistTrack = playlist[currentTrackIndex - 1].playlistTrack
+                currentTrack = playlist[currentTrackIndex - 1].track
+                currentPlaylistTrack = playlist[currentTrackIndex - 1].playlistTrack
+                if let currentTrack {
+                    currentAlbum = LibraryRepository.instance.album(of: currentTrack.albumID)
                 }
             }
         }
-        play()
+        if isPlaying {
+            play()
+        }
     }
 
     func next(_ forceful: Bool = false) {
@@ -418,12 +426,18 @@ extension AudioPlaybackRepository {
 
                     currentTrack = self.playlist?.first?.track
                     currentPlaylistTrack = self.playlist?.first?.playlistTrack
+                    if let currentTrack {
+                        currentAlbum = LibraryRepository.instance.album(of: currentTrack.albumID)
+                    }
                 }
             } else if currentTrackIndex < playlist.count - 1 {
                 self.currentTrackIndex = currentTrackIndex + 1
 
                 currentTrack = playlist[currentTrackIndex + 1].track
                 currentPlaylistTrack = playlist[currentTrackIndex + 1].playlistTrack
+                if let currentTrack {
+                    currentAlbum = LibraryRepository.instance.album(of: currentTrack.albumID)
+                }
             }
         } else {
             self.playlist = nextPlaylist()
@@ -431,11 +445,14 @@ extension AudioPlaybackRepository {
 
             currentTrack = self.playlist?.first?.track
             currentPlaylistTrack = self.playlist?.first?.playlistTrack
+            if let currentTrack {
+                currentAlbum = LibraryRepository.instance.album(of: currentTrack.albumID)
+            }
         }
 
         if finished && !(isLoop || forceful) {
             pause()
-        } else {
+        } else if isPlaying {
             play()
         }
     }
@@ -443,6 +460,99 @@ extension AudioPlaybackRepository {
 
 // MARK: private methods
 extension AudioPlaybackRepository {
+    private func preparePlaylist(
+        _ playlist: Playlist,
+        from: PlaylistTrack?
+    ) {
+        let playlistTracks = LibraryRepository.instance.tracks(for: playlist)
+        guard let first = from ?? playlistTracks.first,
+              let track = LibraryRepository.instance.track(of: first.trackID)
+        else {
+            return
+        }
+        let ids = playlistTracks.map { playlistTrack in
+            playlistTrack.trackID
+        }
+        let tracks = LibraryRepository.instance.tracks.filter { t in
+            ids.contains(t.id)
+        }
+        let playlistItems = playlistTracks.compactMap { playlistTrack in
+            if let t = tracks.first(where: { $0.id == playlistTrack.trackID }) {
+                return PlaylistItem(track: t, playlistTrack: playlistTrack)
+            }
+
+            return nil
+        }
+
+        currentPlaylist = playlist
+
+        guard let album = LibraryRepository.instance.album(of: track.albumID)
+        else {
+            return
+        }
+
+        if isShuffle {
+            let tracks = shuffle(
+                playlistItems,
+                withFirstTrack: PlaylistItem(track: track, playlistTrack: first)
+            )
+            self.playlist = tracks.compactMap { data in
+                if let playlistTrack = data.playlistTrack,
+                   let track = LibraryRepository.instance.track(of: playlistTrack.trackID) {
+                    return PlaylistItem(track: track, playlistTrack: playlistTrack)
+                }
+
+                return nil
+            }
+        } else {
+            self.playlist = playlistItems.compactMap { data in
+                if let playlistTrack = data.playlistTrack,
+                   let track = LibraryRepository.instance.track(of: playlistTrack.trackID) {
+                    return PlaylistItem(track: track, playlistTrack: playlistTrack)
+                }
+
+                return nil
+            }
+        }
+
+        currentAlbum = album
+        currentTrack = track
+        currentTrackIndex = self.playlist?.firstIndex(where: { item in
+            if let pt = item.playlistTrack {
+                return first.id == pt.id
+            } else {
+                return track.id == item.track.id
+            }
+        })
+        currentPlaylistTrack = first
+
+    }
+
+    private func prepareAlbumPlaylist(_ album: Album, from track: Track? = nil) {
+        let tracks = LibraryRepository.instance.tracks(for: album)
+
+        guard let track = track ?? playlist?.first?.track
+        else {
+            playlist = nil
+            return
+        }
+
+        if isShuffle {
+            playlist = shuffle(
+                tracks.map { PlaylistItem(track: $0, playlistTrack: nil) },
+                withFirstTrack: PlaylistItem(track: track, playlistTrack: nil)
+            )
+        } else {
+            playlist = tracks.map { PlaylistItem(track: $0, playlistTrack: nil) }
+        }
+
+        currentAlbum = album
+        currentTrack = track
+        currentTrackIndex = playlist?.firstIndex(where: { item in
+            item.track.id == track.id
+        })
+    }
+
     private func shuffle(_ playlist: [PlaylistItem], withFirstTrack track: PlaylistItem) -> [PlaylistItem] {
         var retval = Array(playlist)
         if let playlistTrack = track.playlistTrack,
@@ -980,6 +1090,10 @@ extension AudioPlaybackRepository {
                 currentTrack = LibraryRepository.instance.track(of: currentTrackID)
                 if let currentTrack {
                     currentAlbum = LibraryRepository.instance.album(of: currentTrack.albumID)
+
+                    if let currentAlbum {
+                        prepareAlbumPlaylist(currentAlbum, from: currentTrack)
+                    }
                 }
             }
 
@@ -991,6 +1105,8 @@ extension AudioPlaybackRepository {
                 currentPlaylistTrack = playlistTracks.first(where: { playlistTrack in
                     playlistTrack.id == currentPlaylistTrackID
                 })
+
+                preparePlaylist(playlist, from: currentPlaylistTrack)
             }
         }
     }
