@@ -139,7 +139,7 @@ struct PlayNowButton: View {
     private var button: some View {
         Button {
             if let album = libraryRepository.currentAlbum {
-                audioPlayerRepository.play(album: album)
+                audioPlayerRepository.play(album: album, from: nil, newPlaylist: true)
             }
         } label: {
             HStack(alignment: .center) {

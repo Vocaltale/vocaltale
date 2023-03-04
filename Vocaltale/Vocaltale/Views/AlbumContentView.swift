@@ -54,7 +54,8 @@ struct AlbumContentView: View {
                             if selected ?? audioPlayerRepository.currentTrack == track {
                                 audioPlayerRepository.play(
                                     album: album,
-                                    from: track
+                                    from: track,
+                                    newPlaylist: true
                                 )
 
                                 selected = nil

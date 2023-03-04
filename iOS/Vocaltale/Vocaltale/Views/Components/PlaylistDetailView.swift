@@ -57,7 +57,8 @@ struct PlaylistDetailView: View {
                                 audioPlayerRepository.play(
                                     playlistTracks,
                                     from: item.track,
-                                    with: playlistTrack
+                                    with: playlistTrack,
+                                    newPlaylist: true
                                 )
                             }
 

@@ -123,7 +123,8 @@ struct PlaylistContentView: View {
                             audioPlayerRepository.play(
                                 playlistTracks,
                                 from: item.track,
-                                with: item.playlistTrack
+                                with: item.playlistTrack,
+                                newPlaylist: true
                             )
 
                             selected = nil

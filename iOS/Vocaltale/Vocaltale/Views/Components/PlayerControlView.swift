@@ -111,7 +111,12 @@ struct PlayerControlView: View {
                         .contextMenu {
                             ForEach(playlist, id: \.id) { item in
                                 Button(item.track.name ?? NSLocalizedString("track_unknown", comment: "")) {
-                                    audioPlayerRepository.play(playlist, from: item.track, with: item.playlistTrack)
+                                    audioPlayerRepository.play(
+                                        playlist,
+                                        from: item.track,
+                                        with: item.playlistTrack,
+                                        newPlaylist: true
+                                    )
                                 }
                             }
                         } preview: {
