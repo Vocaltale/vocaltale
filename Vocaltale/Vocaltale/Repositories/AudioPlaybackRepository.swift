@@ -997,6 +997,7 @@ extension AudioPlaybackRepository {
         switch type {
         case .began:
             self.isPlaying = false
+            self.isPaused = true
 
 #if os(OSX)
             MPNowPlayingInfoCenter.default().playbackState = .paused
