@@ -120,7 +120,11 @@ struct AudioPlayerPanel: View {
                     displayHover = value
                 }
                 .onTapGesture {
-                    libraryRepository.currentAlbum = audioPlayerRepository.currentAlbum
+                    if let playlist = audioPlayerRepository.currentPlaylist {
+                        libraryRepository.currentPlaylist = playlist
+                    } else {
+                        libraryRepository.currentAlbum = audioPlayerRepository.currentAlbum
+                    }
                 }
                 DraggableTimeline(progressOverride: $progressOverride)
                     .frame(height: kDraggableTimelineHeight_macOS)
