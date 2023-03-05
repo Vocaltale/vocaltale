@@ -70,11 +70,7 @@ struct ContentView: View {
                 case .allAlbum:
                     AlbumListContentView()
                 case .playlist:
-                    if let selectedPlaylist = libraryRepository.currentPlaylist {
-                        PlaylistContentView(playlist: selectedPlaylist)
-                    } else {
-                        Spacer()
-                    }
+                    PlaylistContentView()
                 default:
                     Spacer()
                 }

@@ -999,10 +999,6 @@ extension AudioPlaybackRepository {
             self.isPlaying = false
             self.isPaused = true
 
-#if os(OSX)
-            MPNowPlayingInfoCenter.default().playbackState = .paused
-#endif
-
             self.timer.suspend()
         case .ended:
             guard let optionsValue = userInfo[AVAudioSessionInterruptionOptionKey] as? UInt else { return }

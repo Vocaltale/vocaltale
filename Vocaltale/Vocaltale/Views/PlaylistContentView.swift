@@ -71,7 +71,6 @@ private struct PlaylistContentDropDelegate: DropDelegate {
     }
 }
 struct PlaylistContentView: View {
-    let playlist: Playlist
 
     @ObservedObject private var libraryRepository = LibraryRepository.instance
     @ObservedObject private var audioPlayerRepository = AudioPlaybackRepository.instance
@@ -80,7 +79,15 @@ struct PlaylistContentView: View {
     @State private var currentTracks: [PlaylistItem] = []
     @State private var dragged: PlaylistItem?
 
+    private var playlist: Playlist? {
+        return libraryRepository.currentPlaylist
+    }
+
     private func tracks() -> [PlaylistItem] {
+        guard let playlist
+        else {
+            return []
+        }
         let playlistTracks = libraryRepository.tracks(for: playlist)
             .sorted { a, b in
                 a.order < b.order
@@ -159,6 +166,9 @@ struct PlaylistContentView: View {
             )
         )
         .onChange(of: libraryRepository.playlistTracks) { _ in
+            currentTracks = tracks()
+        }
+        .onChange(of: libraryRepository.currentPlaylist) { _ in
             currentTracks = tracks()
         }
         .onAppear {
