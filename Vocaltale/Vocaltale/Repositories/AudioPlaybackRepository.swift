@@ -1117,14 +1117,17 @@ extension AudioPlaybackRepository {
 
     private func nextPlaylist() -> [PlaylistItem]? {
         if let playlist {
-            if isLoop {
-                if isShuffle {
-                    return playlist.shuffled()
-                } else {
-                    return playlist
-                }
+            if isShuffle {
+                return playlist.shuffled()
             } else {
-                return nil
+                return playlist.sorted { itemA, itemB in
+                    if let orderA = itemA.playlistTrack?.order,
+                       let orderB = itemB.playlistTrack?.order {
+                        return orderA < orderB
+                    } else {
+                        return itemA.track.track < itemB.track.track
+                    }
+                }
             }
         }
 
