@@ -17,12 +17,6 @@ class WindowRepository: ObservableObject {
     @Published var playlistPath = NavigationPath()
     @Published var libraryPath = NavigationPath()
     @Published var isShowingPlayerSheet = false
-#endif
-#if os(OSX)
-    @Published var isShowingProgressModal = false
-    @Published var isChildDragging = false
-    @Published var isShowingAddPlaylistModel = false
-#endif
 
     func attachGeometryReader(_ view: some View) -> some View {
         GeometryReader { geometry in
@@ -46,4 +40,11 @@ class WindowRepository: ObservableObject {
             self.geometry = newValue
         }
     }
+#endif
+#if os(OSX)
+    @Published var isShowingProgressModal = false
+    @Published var isChildDragging = false
+    @Published var isShowingAddPlaylistModel = false
+#endif
+
 }
