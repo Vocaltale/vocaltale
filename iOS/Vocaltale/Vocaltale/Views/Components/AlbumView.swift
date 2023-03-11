@@ -58,14 +58,15 @@ struct AlbumView: View {
                 }
                 .shadow(radius: 4.0)
                 Text(album?.displayName ?? NSLocalizedString("album_unknown", comment: ""))
-                    .font(Font.title)
+                    .font(Font.headline)
                     .bold()
                 Text(
                     album == nil ?
                         NSLocalizedString("artist_unknown", comment: "") :
                         libraryRepository.artistNames(of: album!).joined(separator: ", ")
                 )
-                .font(Font.title2)
+                .lineLimit(3)
+                .font(Font.subheadline)
                 .foregroundColor(.accentColor)
             }
         }

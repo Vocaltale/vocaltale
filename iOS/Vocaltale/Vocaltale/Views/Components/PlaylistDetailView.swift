@@ -69,8 +69,9 @@ struct PlaylistDetailView: View {
                     }
                 }
             }
-            .padding(EdgeInsets(top: 0, leading: 16, bottom: 88, trailing: 16))
+            .padding(EdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 16))
         }
+        .navigationTitle(playlist.name)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .onReceive(audioPlayerRepository.$currentPlaylistTrack) { _ in
             selected = nil

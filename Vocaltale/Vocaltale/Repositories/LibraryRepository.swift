@@ -235,6 +235,18 @@ class LibraryRepository: ObservableObject {
                 await MainActor.run {
                     self.currentAlbumID = self.userDefaults?.string(forKey: "CURRENT_OPENED_ALBUM")
                     self.currentPlaylistID = self.userDefaults?.string(forKey: "CURRENT_OPENED_PLAYLIST")
+
+#if os(iOS)
+                    if let currentPlaylist = self.currentPlaylist {
+                        self.currentAlbum = nil
+                        WindowRepository.instance.selectedTabTag = .playlist
+                        WindowRepository.instance.playlistPath.setPlaylist(currentPlaylist)
+                    } else if let currentAlbum = self.currentAlbum {
+                        self.currentPlaylist = nil
+                        WindowRepository.instance.selectedTabTag = .library
+                        WindowRepository.instance.libraryPath.setAlbum(currentAlbum)
+                    }
+#endif
                 }
 
                 self.mainLock.signal()

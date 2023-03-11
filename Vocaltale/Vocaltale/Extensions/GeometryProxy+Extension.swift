@@ -12,4 +12,8 @@ extension GeometryProxy: Equatable {
     public static func == (lhs: GeometryProxy, rhs: GeometryProxy) -> Bool {
         return lhs.size == rhs.size && lhs.safeAreaInsets == rhs.safeAreaInsets
     }
+
+    public var isInvalid: Bool {
+        self.size == .zero || self.safeAreaInsets == EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0)
+    }
 }

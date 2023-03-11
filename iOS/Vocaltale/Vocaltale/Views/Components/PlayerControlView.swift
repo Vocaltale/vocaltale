@@ -15,6 +15,8 @@ struct PlayerControlView: View {
     @State private var progressOverride: Double?
     @State private var displayHover: Bool = false
 
+
+
     private var album: Album? {
         if let album = audioPlayerRepository.currentAlbum {
             return album
@@ -26,12 +28,13 @@ struct PlayerControlView: View {
             return album
         }
 
+        if let currentTrack = audioPlayerRepository.currentTrack,
+           let album = libraryRepository.album(of: currentTrack.albumID) {
+            return album
+        }
+
         return nil
     }
-
-//    private var playlist: Playlist? {
-//        return libraryRepository.currentPlaylist
-//    }
 
     private var artworkURL: URL? {
         if let album {
@@ -127,34 +130,23 @@ struct PlayerControlView: View {
                                         .resizable()
                                         .aspectRatio(contentMode: .fit)
                                 } else {
-                                    ZStack {
-                                        Rectangle()
-                                            .fill(.secondary.opacity(0.5))
-                                            .aspectRatio(1, contentMode: .fit)
-                                            .frame(maxWidth: 1024, maxHeight: 1024, alignment: .center)
-                                        Image(systemName: "music.note")
-                                            .resizable()
-                                            .aspectRatio(contentMode: .fit)
-                                            .foregroundColor(.white)
-                                            .padding(.all, 16)
-                                            .frame(maxWidth: 1024, maxHeight: 1024)
-                                    }
+                                    ArtworkIcon()
                                 }
                             }
                         }
                         .simultaneousGesture(
                             TapGesture().onEnded({ _ in
                                 windowRepository.isShowingPlayerSheet = false
-                                if let currentPlaylist = libraryRepository.currentPlaylist {
+                                if let currentPlaylist = audioPlayerRepository.currentPlaylist {
                                     windowRepository.selectedTabTag = .playlist
                                     libraryRepository.currentPlaylist = currentPlaylist
                                     libraryRepository.currentAlbum = nil
-                                    windowRepository.navigationPath.setPlaylist(currentPlaylist)
+                                    windowRepository.playlistPath.setPlaylist(currentPlaylist)
                                 } else {
                                     windowRepository.selectedTabTag = .library
                                     libraryRepository.currentPlaylist = nil
                                     libraryRepository.currentAlbum = album
-                                    windowRepository.navigationPath.setAlbum(album)
+                                    windowRepository.libraryPath.setAlbum(album)
                                 }
                             })
                         )
@@ -164,8 +156,8 @@ struct PlayerControlView: View {
                 }
             }
             .frame(
-                maxWidth: 0.8 * (windowRepository.geometry?.size.width ?? 0),
-                maxHeight: 0.6 * (windowRepository.geometry?.size.height ?? 0)
+                maxWidth: 0.8 * (UIScreen.main.bounds.width),
+                maxHeight: 0.6 * (UIScreen.main.bounds.height)
             )
             DraggableTimeline(progressOverride: $progressOverride)
                 .frame(height: kDraggableTimelineHeight_iOS)

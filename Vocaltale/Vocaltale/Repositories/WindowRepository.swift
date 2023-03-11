@@ -14,7 +14,8 @@ class WindowRepository: ObservableObject {
     @Published var geometry: GeometryProxy?
 #if os(iOS)
     @Published var selectedTabTag = TabCategory.library
-    @Published var navigationPath = NavigationPath()
+    @Published var playlistPath = NavigationPath()
+    @Published var libraryPath = NavigationPath()
     @Published var isShowingPlayerSheet = false
 #endif
 #if os(OSX)
@@ -22,4 +23,27 @@ class WindowRepository: ObservableObject {
     @Published var isChildDragging = false
     @Published var isShowingAddPlaylistModel = false
 #endif
+
+    func attachGeometryReader(_ view: some View) -> some View {
+        GeometryReader { geometry in
+            view.onAppear {
+                self.setGeometry(geometry)
+            }
+            .onChange(of: geometry) { newValue in
+                self.setGeometry(newValue)
+            }
+        }
+    }
+
+    private func setGeometry(_ newValue: GeometryProxy) {
+        if let geometry, geometry.isInvalid {
+            if !newValue.isInvalid {
+                debugPrint(#function, newValue.size, newValue.safeAreaInsets)
+                self.geometry = newValue
+            }
+        } else {
+            debugPrint(#function, newValue.size, newValue.safeAreaInsets)
+            self.geometry = newValue
+        }
+    }
 }

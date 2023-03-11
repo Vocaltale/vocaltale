@@ -81,66 +81,78 @@ struct AlbumGridView: View {
     @State internal var albums: [Album] = []
     @State private var dragged: Album?
     var body: some View {
-        NavigationStack(path: $windowRepository.navigationPath) {
-            GeometryReader { geometry in
-                ScrollView {
-                    LazyVGrid(columns: [
-                        GridItem(.flexible(minimum: kCurrentAudioPanelHeight, maximum: .infinity)),
-                        GridItem(.flexible(minimum: kCurrentAudioPanelHeight, maximum: .infinity))
-                    ], content: {
-                        ForEach(albums, id: \.id) { album in
-                            NavigationLink(value: album) {
-                                AlbumCardView(album: album)
-                                    .foregroundColor(Color.primary)
-                                    .frame(alignment: .center)
-                                    .padding(
-                                        EdgeInsets(top: 8, leading: 12, bottom: 8, trailing: 12)
+        NavigationStack(path: $windowRepository.libraryPath) {
+            ScrollView {
+                LazyVGrid(columns: [
+                    GridItem(.flexible(minimum: kCurrentAudioPanelHeight, maximum: .infinity)),
+                    GridItem(.flexible(minimum: kCurrentAudioPanelHeight, maximum: .infinity))
+                ], content: {
+                    ForEach(albums, id: \.id) { album in
+                        NavigationLink(value: album) {
+                            AlbumCardView(album: album)
+                                .foregroundColor(Color.primary)
+                                .frame(alignment: .center)
+                                .padding(
+                                    EdgeInsets(top: 8, leading: 12, bottom: 8, trailing: 12)
+                                )
+                                .clipShape(RoundedRectangle(cornerRadius: 8.0))
+                                .onDrag {
+                                    dragged = album
+                                    return NSItemProvider(object: album.uuid as NSString)
+                                }
+                                .onDrop(
+                                    of: [.text],
+                                    delegate: AlbumListContentDropDelegate(
+                                        item: album,
+                                        dragged: $dragged,
+                                        albums: $albums
                                     )
-                                    .clipShape(RoundedRectangle(cornerRadius: 8.0))
-                                    .onDrag {
-                                        dragged = album
-                                        return NSItemProvider(object: album.uuid as NSString)
-                                    }
-                                    .onDrop(
-                                        of: [.text],
-                                        delegate: AlbumListContentDropDelegate(
-                                            item: album,
-                                            dragged: $dragged,
-                                            albums: $albums
-                                        )
-                                    )
-                                    .animation(.default, value: albums)
-                            }.simultaneousGesture(
-                                TapGesture().onEnded({ _ in
-                                    libraryRepository.currentAlbum = album
-                                    libraryRepository.currentPlaylist = nil
-                                })
+                                )
+                                .animation(.default, value: albums)
+                        }.simultaneousGesture(
+                            TapGesture().onEnded({ _ in
+                                libraryRepository.currentPlaylist = nil
+                                libraryRepository.currentAlbum = album
+                            })
+                        )
+                    }
+                    .onChange(of: libraryRepository.albums) { value in
+                        albums = value
+                    }
+                    .onAppear {
+                        albums = libraryRepository.albums
+                    }
+                    if (albums.count % 2) == 1 {
+                        Spacer()
+                    }
+                })
+            }
+            .safeAreaInset(edge: .bottom) {
+                CurrentAudioPanel()
+                    .frame(maxWidth: .infinity, maxHeight: kCurrentAudioPanelHeight)
+                    .background(
+                        VisualEffectView(
+                            effect: UIBlurEffect(style: .regular)
+                        )
+                    )
+                    .onTapGesture {
+                        windowRepository.isShowingPlayerSheet = true
+                    }
+            }
+            .navigationDestination(for: Album.self) { album in
+                AlbumDetailView(album: album)
+                    .safeAreaInset(edge: .bottom) {
+                        CurrentAudioPanel()
+                            .frame(maxWidth: .infinity, maxHeight: kCurrentAudioPanelHeight)
+                            .background(
+                                VisualEffectView(
+                                    effect: UIBlurEffect(style: .regular)
+                                )
                             )
-                        }
-                        .onChange(of: libraryRepository.albums) { value in
-                            albums = value
-                        }
-                        .onAppear {
-                            albums = libraryRepository.albums
-                        }
-                        if (albums.count % 2) == 1 {
-                            Spacer()
-                        }
-                        Spacer()
-                            .frame(width: kCurrentAudioPanelHeight, height: kCurrentAudioPanelHeight)
-                        Spacer()
-                            .frame(width: kCurrentAudioPanelHeight, height: kCurrentAudioPanelHeight)
-                    })
-                }
-                .navigationDestination(for: Album.self) { album in
-                    AlbumDetailView(album: album)
-                }
-                .onAppear {
-                    windowRepository.geometry = geometry
-                }
-                .onChange(of: geometry) { newValue in
-                    windowRepository.geometry = newValue
-                }
+                            .onTapGesture {
+                                windowRepository.isShowingPlayerSheet = true
+                            }
+                    }
             }
             .navigationTitle(NSLocalizedString("navbar_library", comment: ""))
         }

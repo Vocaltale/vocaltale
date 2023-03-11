@@ -9,7 +9,7 @@ import SwiftUI
 
 extension NavigationPath {
     mutating func setAlbum(_ album: Album) {
-        if count > 0 {
+        while count > 0 {
             removeLast()
         }
 
@@ -17,7 +17,7 @@ extension NavigationPath {
     }
 
     mutating func setPlaylist(_ playlist: Playlist) {
-        if count > 0 {
+        while count > 0 {
             removeLast()
         }
 

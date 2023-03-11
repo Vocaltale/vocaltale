@@ -37,6 +37,7 @@ struct AlbumDetailView: View {
                 alignment: .leading
             ) {
                 AlbumView(album: album)
+                    .padding(EdgeInsets(top: 0, leading: 0, bottom: 16, trailing: 0))
                 ForEach(discs, id: \.self) { disc in
                     if discs.count > 1 {
                         Text(String(format: NSLocalizedString("album_disc_label", comment: ""), disc))
@@ -52,8 +53,6 @@ struct AlbumDetailView: View {
                             selected: selected ?? audioPlayerRepository.currentTrack == track
                         ) {
                             if selected ?? audioPlayerRepository.currentTrack == track {
-                                let tracks = libraryRepository.tracks(for: album)
-
                                 audioPlayerRepository.play(
                                     album: album,
                                     from: track,
@@ -69,17 +68,12 @@ struct AlbumDetailView: View {
                     }
                 }
             }
-            .padding(EdgeInsets(top: 0, leading: 16, bottom: 88, trailing: 16))
+            .padding(EdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 16))
         }
+        .navigationTitle(album.displayName)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .onReceive(audioPlayerRepository.$currentTrack) { _ in
             selected = nil
         }
     }
-    //    var body: some View {
-    //        ScrollView {
-    //            AlbumView(album: album)
-    //
-    //        }
-    //    }
 }

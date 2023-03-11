@@ -18,12 +18,12 @@ struct SearchGridView: View {
         NavigationStack {
             ScrollView {
                 TextField("tabview_search_keyword_placeholder", text: $libraryRepository.keyword)
-                .lineLimit(1)
-                .padding(.all, 16.0)
-                .textFieldStyle(.roundedBorder)
-                .onChange(of: libraryRepository.keyword) { value in
-                    LibraryService.instance.search(for: value)
-                }
+                    .lineLimit(1)
+                    .padding(.all, 16.0)
+                    .textFieldStyle(.roundedBorder)
+                    .onChange(of: libraryRepository.keyword) { value in
+                        LibraryService.instance.search(for: value)
+                    }
                 LazyVGrid(
                     columns: [
                         GridItem(.flexible(minimum: kCurrentAudioPanelHeight, maximum: .infinity)),
@@ -68,6 +68,18 @@ struct SearchGridView: View {
                             .frame(width: kCurrentAudioPanelHeight, height: kCurrentAudioPanelHeight)
                     }
                 )
+            }
+            .safeAreaInset(edge: .bottom) {
+                CurrentAudioPanel()
+                    .frame(maxWidth: .infinity, maxHeight: kCurrentAudioPanelHeight)
+                    .background(
+                        VisualEffectView(
+                            effect: UIBlurEffect(style: .regular)
+                        )
+                    )
+                    .onTapGesture {
+                        windowRepository.isShowingPlayerSheet = true
+                    }
             }
             .navigationTitle(NSLocalizedString("navbar_search", comment: ""))
         }

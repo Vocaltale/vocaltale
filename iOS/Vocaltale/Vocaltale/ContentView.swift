@@ -44,17 +44,6 @@ struct ContentView: View {
                         for: .tabBar
                     )
             }
-            CurrentAudioPanel()
-                .frame(maxWidth: .infinity, maxHeight: kCurrentAudioPanelHeight)
-                .background(
-                    VisualEffectView(
-                        effect: UIBlurEffect(style: .regular)
-                    )
-                )
-                .onTapGesture {
-                    windowRepository.isShowingPlayerSheet = true
-                }
-                .offset(x: 0, y: -1 * (windowRepository.geometry?.safeAreaInsets.bottom ?? 0))
         }
         .sheet(
             isPresented: $windowRepository.isShowingPlayerSheet,
@@ -72,10 +61,6 @@ struct ContentView: View {
             ) {
                 DispatchQueue.global(qos: .background).sync {
                     LibraryService.instance.openLibrary(from: url)
-                }
-
-                if libraryRepository.currentAlbumID != nil {
-                    libraryRepository.currentAlbum = nil
                 }
             }
         }
