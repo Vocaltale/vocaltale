@@ -1090,17 +1090,6 @@ extension AudioPlaybackRepository {
                 isLoop = userDefaultsIsLoop
             }
 
-            if let currentTrackID = userDefaultsCurrentTrackID {
-                currentTrack = LibraryRepository.instance.track(of: currentTrackID)
-                if let currentTrack {
-                    currentAlbum = LibraryRepository.instance.album(of: currentTrack.albumID)
-
-                    if let currentAlbum {
-                        prepareAlbumPlaylist(currentAlbum, from: currentTrack)
-                    }
-                }
-            }
-
             if let currentPlaylistTrackID = userDefaultsCurrentPlaylistTrackID,
                 let currentPlaylistID = userDefaultsCurrentPlaylistID,
                let playlist = LibraryRepository.instance.playlist(of: currentPlaylistID) {
@@ -1111,7 +1100,17 @@ extension AudioPlaybackRepository {
                 })
 
                 preparePlaylist(playlist, from: currentPlaylistTrack)
+            } else if let currentTrackID = userDefaultsCurrentTrackID {
+                currentTrack = LibraryRepository.instance.track(of: currentTrackID)
+                if let currentTrack {
+                    currentAlbum = LibraryRepository.instance.album(of: currentTrack.albumID)
+
+                    if let currentAlbum {
+                        prepareAlbumPlaylist(currentAlbum, from: currentTrack)
+                    }
+                }
             }
+
         }
     }
 
