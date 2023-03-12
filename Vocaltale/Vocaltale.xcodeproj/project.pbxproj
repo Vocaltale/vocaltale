@@ -749,7 +749,7 @@
 				SDKROOT = macosx;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
-				SWIFT_VERSION = 5.7;
+				SWIFT_VERSION = 5.0;
 			};
 			name = Debug;
 		};
@@ -805,7 +805,7 @@
 				SDKROOT = macosx;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
-				SWIFT_VERSION = 5.7;
+				SWIFT_VERSION = 5.0;
 			};
 			name = Release;
 		};
@@ -840,7 +840,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.vocaltale.app.Vocaltale.debug;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_VERSION = 5.7;
+				SWIFT_VERSION = 5.0;
 				VERSIONING_SYSTEM = "apple-generic";
 			};
 			name = Debug;
@@ -877,7 +877,7 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_VERSION = 5.7;
+				SWIFT_VERSION = 5.0;
 				VERSIONING_SYSTEM = "apple-generic";
 			};
 			name = Release;
@@ -896,7 +896,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.vocaltale.macOS.VocaltaleTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = NO;
-				SWIFT_VERSION = 5.7;
+				SWIFT_VERSION = 5.0;
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Vocaltale.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Vocaltale";
 			};
 			name = Debug;
@@ -915,7 +915,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.vocaltale.macOS.VocaltaleTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = NO;
-				SWIFT_VERSION = 5.7;
+				SWIFT_VERSION = 5.0;
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Vocaltale.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Vocaltale";
 			};
 			name = Release;
@@ -932,7 +932,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.vocaltale.macOS.VocaltaleUITests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = NO;
-				SWIFT_VERSION = 5.7;
+				SWIFT_VERSION = 5.0;
 				TEST_TARGET_NAME = Vocaltale;
 			};
 			name = Debug;
@@ -949,7 +949,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.vocaltale.macOS.VocaltaleUITests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = NO;
-				SWIFT_VERSION = 5.7;
+				SWIFT_VERSION = 5.0;
 				TEST_TARGET_NAME = Vocaltale;
 			};
 			name = Release;
