@@ -14,24 +14,18 @@ struct PlaylistListView: View {
 
     var body: some View {
         NavigationStack(path: $windowRepository.playlistPath) {
-            ScrollView {
-                LazyVStack(spacing: 4) {
-                    ForEach(libraryRepository.playlists, id: \.id) { playlist in
-                        NavigationLink(value: playlist) {
-                            HStack {
-                                Text(playlist.name)
-                                Spacer()
-                            }.padding(.all, 4.0)
-                        }.simultaneousGesture(
-                            TapGesture().onEnded({ _ in
-                                libraryRepository.currentAlbum = nil
-                                libraryRepository.currentPlaylist = playlist
-                            })
-                        )
-                    }
-                }
-                .padding(EdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 16))
-                Spacer()
+            List(libraryRepository.playlists, id: \.id) { playlist in
+                NavigationLink(value: playlist) {
+                    HStack {
+                        Text(playlist.name)
+                        Spacer()
+                    }.padding(.all, 4.0)
+                }.simultaneousGesture(
+                    TapGesture().onEnded({ _ in
+                        libraryRepository.currentAlbum = nil
+                        libraryRepository.currentPlaylist = playlist
+                    })
+                )
             }
             .safeAreaInset(edge: .bottom) {
                 CurrentAudioPanel()
