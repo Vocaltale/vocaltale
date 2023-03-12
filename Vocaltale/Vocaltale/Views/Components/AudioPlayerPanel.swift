@@ -15,21 +15,17 @@ struct AudioPlayerPanel: View {
     @State private var displayHover: Bool = false
 
     private var album: Album? {
-        get {
-            audioPlayerRepository.currentAlbum
-        }
+        audioPlayerRepository.currentAlbum
     }
 
     private var artworkURL: URL? {
-        get {
-            if let album {
-                return libraryRepository.currentLibraryURL?.appending(path: "metadata")
-                    .appending(path: album.uuid)
-                    .appending(path: "artwork")
-            }
-
-            return nil
+        if let album {
+            return libraryRepository.currentLibraryURL?.appending(path: "metadata")
+                .appending(path: album.uuid)
+                .appending(path: "artwork")
         }
+
+        return nil
     }
 
     private var currentTime: String? {

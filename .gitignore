@@ -45,3 +45,5 @@ artifacts
 *.xcarchive
 private_keys
 *.p8
+
+.vscode

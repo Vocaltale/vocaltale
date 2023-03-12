@@ -7,3 +7,5 @@ disabled_rules:
   - identifier_name
   - function_parameter_count
   - cyclomatic_complexity
+  - type_name
+  - variable_name_min_length

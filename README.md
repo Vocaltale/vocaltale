@@ -25,7 +25,7 @@ System Requirement
 Testing
 ---
 
-Currently the App is under beta testing, here is the Testflight (iOS and macOS) invitation link: [here](https://testflight.apple.com/join/fAXy3LwY)
+Currently the App is under beta testing, here is the Testflight (iOS and macOS) invitation link: [here](https://testflight.apple.com/join/lFRBwHuo)
 
 Contribute?
 ---

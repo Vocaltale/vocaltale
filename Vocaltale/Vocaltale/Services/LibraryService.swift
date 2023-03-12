@@ -112,22 +112,20 @@ class LibraryService {
                 .skipsHiddenFiles,
                 .skipsPackageDescendants
             ]) {
-                for case let fileURL as URL in enumerator {
-                    if UTType(filenameExtension: fileURL.pathExtension, conformingTo: .audio) != nil {
+                for case let fileURL as URL in enumerator where UTType(filenameExtension: fileURL.pathExtension, conformingTo: .audio) != nil {
 
-                        self.libraryServiceLock.wait()
-                        libraryRepository.incrementFileCount()
-                        libraryRepository.state = .loading
-                        Task {
-                            do {
-                                let audioFile = try await FileService.instance.process(file: fileURL)
+                    self.libraryServiceLock.wait()
+                    libraryRepository.incrementFileCount()
+                    libraryRepository.state = .loading
+                    Task {
+                        do {
+                            let audioFile = try await FileService.instance.process(file: fileURL)
 
-                                libraryRepository.copy(file: audioFile) {
-                                    self.onFileProcessed(state)
-                                }
-                            } catch {
+                            libraryRepository.copy(file: audioFile) {
                                 self.onFileProcessed(state)
                             }
+                        } catch {
+                            self.onFileProcessed(state)
                         }
                     }
                 }

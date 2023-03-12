@@ -15,8 +15,6 @@ struct PlayerControlView: View {
     @State private var progressOverride: Double?
     @State private var displayHover: Bool = false
 
-
-
     private var album: Album? {
         if let album = audioPlayerRepository.currentAlbum {
             return album

@@ -363,7 +363,10 @@ class LibraryRepository: ObservableObject {
     func artist(by uuid: String) -> Artist {
         let retval = artists.first { artist in
             artist.uuid == uuid
-        } ?? Artist( uuid: "ffffffff-ffff-ffff-ffff-ffffffffffff", name: NSLocalizedString("artist_unknown", comment: ""))
+        } ?? Artist(
+            uuid: "ffffffff-ffff-ffff-ffff-ffffffffffff",
+            name: NSLocalizedString("artist_unknown", comment: "")
+        )
 
         return retval
     }
@@ -451,7 +454,10 @@ class LibraryRepository: ObservableObject {
                     if let artwork = source.artwork {
                         let artworkPath = metadataDirectory.appending(path: "artwork")
 
-                        try FileManager.default.createDirectory(at: metadataDirectory, withIntermediateDirectories: true)
+                        try FileManager.default.createDirectory(
+                            at: metadataDirectory,
+                            withIntermediateDirectories: true
+                        )
                         FileManager.default.createFile(atPath: artworkPath.relativePath, contents: artwork)
                     }
 
@@ -585,7 +591,9 @@ class LibraryRepository: ObservableObject {
         }
 
         let albums = albums.filter { a in
-            a.displayName.contains(regex) || a.displayArtist.contains(regex) || artistNames(of: a).contains(where: { string in
+            a.displayName.contains(regex)
+            || a.displayArtist.contains(regex)
+            || artistNames(of: a).contains(where: { string in
                 string.contains(regex)
             })
         }
@@ -915,7 +923,7 @@ extension LibraryRepository {
     private func tryDeletePlaylistTrack(
         _ db: SQLDatabase,
         _ playlistTrack: PlaylistTrack
-    ) async throws{
+    ) async throws {
         try await db.delete(from: "playlist_tracks")
             .where("uuid", .equal, playlistTrack.id)
             .run()

@@ -38,10 +38,8 @@ struct AudioDevice {
         }
 
         let buffers = UnsafeMutableAudioBufferListPointer(bufferList)
-        for bufferNum in 0..<buffers.count {
-            if buffers[bufferNum].mNumberChannels > 0 {
-                return true
-            }
+        for bufferNum in 0..<buffers.count where buffers[bufferNum].mNumberChannels > 0 {
+            return true
         }
 
         return false
